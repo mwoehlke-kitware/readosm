@@ -68,7 +68,8 @@ am__base_list = \
 am__installdirs = "$(DESTDIR)$(libdir)"
 LTLIBRARIES = $(lib_LTLIBRARIES)
 libreadosm_la_LIBADD =
-am_libreadosm_la_OBJECTS = readosm.lo
+am_libreadosm_la_OBJECTS = readosm.lo osm_objects.lo osmxml.lo \
+	protobuf.lo
 libreadosm_la_OBJECTS = $(am_libreadosm_la_OBJECTS)
 libreadosm_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
@@ -213,7 +214,7 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 INCLUDES = -I$(top_srcdir)/headers -I$(top_srcdir)
 lib_LTLIBRARIES = libreadosm.la 
-libreadosm_la_SOURCES = readosm.c
+libreadosm_la_SOURCES = readosm.c osm_objects.c osmxml.c protobuf.c
 libreadosm_la_LDFLAGS = -version-info 1:0:0 -no-undefined
 MOSTLYCLEANFILES = *.gcna *.gcno *.gcda
 all: all-am
@@ -290,6 +291,9 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/osm_objects.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/osmxml.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/protobuf.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/readosm.Plo@am__quote@
 
 .c.o:
