@@ -5,8 +5,8 @@
 ReadOSM is a C open source library to extract valid data from within an Open
 Street Map input file. Such OSM files come in two different formats:
  - files identified by the <b>.osm</b> suffix simply are plain XML files.
- - files identified by the <b>.osm.pbf</b> suffix does containt the same identical
-   data, but adopting the Google's Protocol Buffer serialization format (a
+ - files identified by the <b>.osm.pbf</b> suffix contain the same 
+    data, but adopting the Google's Protocol Buffer serialization format (a
    more concise and compressed binary notation, thus requiring much less
    storage space).
 
@@ -21,7 +21,7 @@ ReadOSM is structurally simple and quite light-weight (typically about 20K of ob
 code, stripped). ReadOSM has only two key dependencies:
  - zlib (the well known ZIP library), which is used to decompress zipped binary
    blocks internally stored within .osm.pbf files.
- - expat (a widely used XML parsing library), wich is used to parse XML .osm files.
+ - expat (a widely used XML parsing library), which is used to parse XML .osm files.
  - both libraries are widely available on many platforms.
 
 Building and installing ReadOSM is straightforward:
@@ -44,11 +44,11 @@ gcc -I/usr/local/include my_program.c -o my_program \
 
 ReadOSM also provides pkg-config support, so you can also do:
 \verbatim
-gcc -I/usr/local/include my_program.c -o my_program `pkg-config --libs readosm`
+gcc `pkg-config --cflags readosm` my_program.c -o my_program `pkg-config --libs readosm`
 \endverbatim
 
 I originally developed ReadOSM simply in order to allow the SpatiaLite's
-own CLI tools to acquire both OSM .osm and .osm.pbf files indifferenctly.
+own CLI tools to acquire both OSM .osm and .osm.pbf files indifferently.
 Anyway I feel that supporting OSM files import/parsing in a simple and easy
 way could be useful to many other developers, so I quickly decided to
 implement all this stuff as a self-standing library. 
@@ -80,7 +80,7 @@ by the OSM data model and their mutual relationships.
 
 \section Node
 
-A Node simply corresponds to a 2D POINT Geometry; the geografic coordinates
+A Node simply corresponds to a 2D POINT Geometry; the geographic coordinates
 are always expressed as Longitude and Latitude (corresponding to SRID 4326).<br>
 A Node doesn't simply have a geometry; it's usually characterized by several data
 attributes:
@@ -122,7 +122,7 @@ The following is the XML general layout used to represent a Way object:
 
 \section Relation
 
-A Relation is a complex object: it can correspong to a 2D POLYGON, or to to a 2D MULTILINESTRING, or even to a 2D GEOMETRICOLLECTION.<br>
+A Relation is a complex object: it can correspond to a 2D POLYGON, or to a 2D MULTILINESTRING, or even to a 2D GEOMETRICOLLECTION.<br>
 A Relation object can reference any other kind of OSM objects: each <b>&lt;member&gt;</b> item can address a Node object, 
 a Way object or another Relation object; the \b type attribute will always specify the nature of the referenced object,
 and the optional \b role attribute may eventually better specify the intended scope.<br>
@@ -142,8 +142,8 @@ The following is the XML general layout used to represent a Relation object:
 
 /** \page formats Open Street Map file formats
 
-There are two distinct formats used to ship OSM datasets: both exactly contains the same identical
-informations, but the internal layout is radically different.
+There are two distinct formats used to ship OSM datasets: both contains the exact same
+information, but the internal layout is radically different.
 
 \section osm XML (.osm) files
 
@@ -170,10 +170,9 @@ preliminary decompression step being required at all.<br>
 
 \section readosm Why using ReadOSM ?
 
-The intended scope of <b>ReadOSM</b> is to allow transparent parsing of both OSM formats indifferenctly.
-There is no need to take care of any internal low-level aspect, because it's the library itself that
-silently handles any required step.
-The simple and easy abstact interface implemented by ReadOSM is exactly intended so to allow many
+The intended scope of <b>ReadOSM</b> is to allow transparent parsing of both OSM formats indifferently.
+There is no need to take care of any internal low-level aspect, because the library itself silently handles any required step.
+The simple and easy abstract interface implemented by ReadOSM is exactly intended so to allow many
 reader-apps to consume OSM-input files in the most painless way; and all this requires only a
 very limited memory footprint.
 
@@ -183,7 +182,7 @@ very limited memory footprint.
 
 ReadOSM implements a very simple and straightforward interface; there are only three methods:
 - <b>readosm_open()</b>: this function is intended to establish a connection to some OSM input file.
-- <b>readosm_close()</b>: this function is intended to terminate a previouly established connection.
+- <b>readosm_close()</b>: this function is intended to terminate a previously established connection.
 - <b>readosm_parse()</b>: a single function dispatching the whole parsing process (mainly based on <b>callback functions</b>).
 
 Accordingly to the above premises, implementing a complete OSM parser is incredibly simple:

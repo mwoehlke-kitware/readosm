@@ -15,7 +15,7 @@ or
 \endverbatim
 
 Please note: the output produced by test_osm1 is usually verbose,
-so rediretcting the standard output to some disk file is strongly
+so redirecting the standard output to some disk file is strongly
 suggested.
 */
 
