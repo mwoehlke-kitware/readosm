@@ -498,7 +498,7 @@ append_tag_to_relation (readosm_internal_relation * relation, const char *key,
 static void
 destroy_internal_relation (readosm_internal_relation * relation)
 {
-/* destroing an internal RELATION object */
+/* destroying an internal RELATION object */
     readosm_internal_member *member;
     readosm_internal_member *member_n;
     readosm_internal_tag *tag;
@@ -717,11 +717,11 @@ call_node_callback (readosm_node_callback node_callback,
 
 /* 
  / please note: READONLY-NODE simply is the same as export 
- / NODE inteded to disabale any possible awful user action
+ / NODE intended to disable any possible awful user action
 */
     readosm_node *readonly_node = (readosm_node *) & exp_node;
 
-/*initialing an empty export NODE object */
+/* initializing an empty export NODE object */
     init_export_node (&exp_node);
 
 /* setting up the export NODE object */
@@ -806,11 +806,11 @@ call_way_callback (readosm_way_callback way_callback,
 
 /* 
  / please note: READONLY-WAY simply is the same as export 
- / WAY inteded to disabale any possible awful user action
+ / WAY intended to disable any possible awful user action
 */
     readosm_way *readonly_way = (readosm_way *) & exp_way;
 
-/*initialing an empty export WAY object */
+/* initializing an empty export WAY object */
     init_export_way (&exp_way);
 
     exp_way.id = way->id;
@@ -914,11 +914,11 @@ call_relation_callback (readosm_relation_callback relation_callback,
 
 /* 
  / please note: READONLY-RELATION simply is the same as export 
- / RELATION inteded to disabale any possible awful user action
+ / RELATION intended to disable any possible awful user action
 */
     readosm_relation *readonly_relation = (readosm_relation *) & exp_relation;
 
-/*initialing an empty export RELATION object */
+/* initializing an empty export RELATION object */
     init_export_relation (&exp_relation);
 
     exp_relation.id = relation->id;
@@ -1039,7 +1039,7 @@ alloc_osm_file (int little_endian_cpu, int format)
 static void
 destroy_osm_file (readosm_file * input)
 {
-/* destroyng the OSM input file struct */
+/* destroying the OSM input file struct */
     if (input)
       {
 	  if (input->in)
@@ -1804,12 +1804,12 @@ static unsigned char *
 read_var (unsigned char *start, unsigned char *stop, readosm_variant * variant)
 {
 /* 
- / attempting to read a variable lenght base128 int 
+ / attempting to read a variable length base128 int 
  /
  / PBF integers are encoded as base128, i.e. using 7 bits
  / for each byte: if the most significant bit is 1, then
  / a further byte is required to get the int value, and so
- / on, until a byte having a 0 most significat bit is found.
+ / on, until a byte having a 0 most significant bit is found.
  /
  / using this encoding little values simply require few bytes:
  / as a worst case 5 bytes are required to encode int32, and
@@ -2074,7 +2074,7 @@ read_bytes (unsigned char *start, unsigned char *stop,
     readosm_variant varlen;
     unsigned int len;
 
-/* initializing an empty variant field (lenght) */
+/* initializing an empty variant field (length) */
     init_variant (&varlen, variant->little_endian_cpu);
     varlen.type = READOSM_VAR_UINT32;
 
@@ -2096,11 +2096,11 @@ static int
 parse_uint32_packed (readosm_uint32_packed * packed, unsigned char *start,
 		     unsigned char *stop, char little_endian_cpu)
 {
-/* parsing an uint32 packed object */
+/* parsing a uint32 packed object */
     unsigned char *ptr = start;
     readosm_variant variant;
 
-/* initializing an empty variant field (lenght) */
+/* initializing an empty variant field (length) */
     init_variant (&variant, little_endian_cpu);
     variant.type = READOSM_VAR_UINT32;
 
@@ -2128,7 +2128,7 @@ parse_sint32_packed (readosm_int32_packed * packed, unsigned char *start,
     unsigned char *ptr = start;
     readosm_variant variant;
 
-/* initializing an empty variant field (lenght) */
+/* initializing an empty variant field (length) */
     init_variant (&variant, little_endian_cpu);
     variant.type = READOSM_VAR_SINT32;
 
@@ -2156,7 +2156,7 @@ parse_sint64_packed (readosm_int64_packed * packed, unsigned char *start,
     unsigned char *ptr = start;
     readosm_variant variant;
 
-/* initializing an empty variant field (lenght) */
+/* initializing an empty variant field (length) */
     init_variant (&variant, little_endian_cpu);
     variant.type = READOSM_VAR_SINT64;
 
@@ -2223,7 +2223,7 @@ parse_field (unsigned char *start, unsigned char *stop,
     type = *ptr & 0x07;
     field_id = (*ptr & 0xf8) >> 3;
 
-/* attempting to indentify the field accordingly to declared hints */
+/* attempting to identify the field accordingly to declared hints */
     if (!find_type_hint (variant, field_id, type, &type_hint))
 	return NULL;
 
@@ -2662,7 +2662,7 @@ parse_pbf_nodes (readosm_string_table * strings,
  /
  / each "string" in turn contains an array of INT values;
  / and individual values are usually encoded as DELTAs,
- / i.e. differences respect the immedialy preceding value.
+ / i.e. differences respect the immediately preceding value.
  /
  / (*) packed keys actually are encoded as arrays of index
  / to StringTable entries.
