@@ -169,7 +169,7 @@ main (int argc, char *argv[])
 /*
 * STEP #1: opening the OSM file
 * this can indifferently be an OSM XML encoded file (.osm)
-* or an OSM Protocol Buffer encoded file (.osm.pbf)
+* or an OSM Protocol Buffer encoded file (.pbf)
 * the library will transparently perform any required
 * action in both cases.
 */

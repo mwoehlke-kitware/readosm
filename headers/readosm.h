@@ -79,8 +79,8 @@ extern "C"
 
 /* Error codes */
 #define READOSM_OK			0 /**< No error, success */
-#define READOSM_INVALID_SUFFIX		-1 /**< not .osm or .osm.pbf suffix */
-#define READOSM_FILE_NOT_FOUND		-2 /**< .osm or .osm.pbf file does not exist or is
+#define READOSM_INVALID_SUFFIX		-1 /**< not .osm or .pbf suffix */
+#define READOSM_FILE_NOT_FOUND		-2 /**< .osm or .pbf file does not exist or is
 						not accessible for reading */
 #define READOSM_NULL_HANDLE		-3 /**< Null OSM_handle argument */
 #define READOSM_INVALID_HANDLE		-4 /**< Invalid OSM_handle argument */
@@ -244,7 +244,7 @@ extern "C"
 					      relation);
 
     /**
-     Open the .osm or .osm.pbf file, preparing for future functions
+     Open the .osm or .pbf file, preparing for future functions
      
      \param path full or relative pathname of the input file.
      \param osm_handle an opaque reference (handle) to be used in each
@@ -260,7 +260,7 @@ extern "C"
 				      const void **osm_handle);
 
     /** 
-     Close the .osm or .osm.pbf file and release any allocated resource
+     Close the .osm or .pbf file and release any allocated resource
 
     \param osm_handle the handle previously returned by readosm_open()
 
@@ -273,7 +273,7 @@ extern "C"
     READOSM_DECLARE int readosm_close (const void *osm_handle);
 
     /** 
-     Close the .osm or .osm.pbf file and release any allocated resource
+     Close the .osm or .pbf file and release any allocated resource
 
     \param osm_handle the handle previously returned by readosm_open()
 \param user_data pointer to some user-supplied data struct

@@ -85,7 +85,7 @@ main (int argc, char *argv[])
 		       check_relation);
     if (ret != READOSM_OK)
       {
-	  fprintf (stderr, ".osm.pbf PARSE error: %d\n", ret);
+	  fprintf (stderr, ".pbf PARSE error: %d\n", ret);
 	  return -2;
       }
 

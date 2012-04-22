@@ -1,7 +1,7 @@
 /* 
 / protobuf.c
 /
-/ Protocol Buffer (.osm.pbf) implementation
+/ Protocol Buffer (.pbf) implementation
 /
 / version  1.0, 2012 April 21
 /

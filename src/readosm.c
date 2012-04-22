@@ -108,7 +108,7 @@ readosm_open (const char *path, const void **osm_handle)
     len = strlen (path);
     if (len > 4 && strcasecmp (path + len - 4, ".osm") == 0)
 	format = READOSM_OSM_FORMAT;
-    else if (len > 8 && strcasecmp (path + len - 8, ".osm.pbf") == 0)
+    else if (len > 4 && strcasecmp (path + len - 4, ".pbf") == 0)
 	format = READOSM_PBF_FORMAT;
     else
 	return READOSM_INVALID_SUFFIX;

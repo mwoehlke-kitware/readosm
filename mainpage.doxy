@@ -5,7 +5,7 @@
 ReadOSM is a C open source library to extract valid data from within an Open
 Street Map input file. Such OSM files come in two different formats:
  - files identified by the <b>.osm</b> suffix simply are plain XML files.
- - files identified by the <b>.osm.pbf</b> suffix contain the same 
+ - files identified by the <b>.pbf</b> suffix contain the same 
     data, but adopting the Google's Protocol Buffer serialization format (a
    more concise and compressed binary notation, thus requiring much less
    storage space).
@@ -14,13 +14,13 @@ The ReadOSM design goals are:
  - to be simple and lightweight
  - to be stable, robust and efficient
  - to be easily and universally portable.
- - making the whole parsing process of both .osm or .osm.pbf files 
+ - making the whole parsing process of both .osm or .pbf files 
    completely transparent from the application own perspective.
 
 ReadOSM is structurally simple and quite light-weight (typically about 20K of object
 code, stripped). ReadOSM has only two key dependencies:
  - zlib (the well known ZIP library), which is used to decompress zipped binary
-   blocks internally stored within .osm.pbf files.
+   blocks internally stored within .pbf files.
  - expat (a widely used XML parsing library), which is used to parse XML .osm files.
  - both libraries are widely available on many platforms.
 
@@ -48,7 +48,7 @@ gcc `pkg-config --cflags readosm` my_program.c -o my_program `pkg-config --libs 
 \endverbatim
 
 I originally developed ReadOSM simply in order to allow the SpatiaLite's
-own CLI tools to acquire both OSM .osm and .osm.pbf files indifferently.
+own CLI tools to acquire both OSM .osm and .pbf files indifferently.
 Anyway I feel that supporting OSM files import/parsing in a simple and easy
 way could be useful to many other developers, so I quickly decided to
 implement all this stuff as a self-standing library. 
@@ -122,7 +122,7 @@ The following is the XML general layout used to represent a Way object:
 
 \section Relation
 
-A Relation is a complex object: it can correspond to a 2D POLYGON, or to a 2D MULTILINESTRING, or even to a 2D GEOMETRICOLLECTION.<br>
+A Relation is a complex object: it can correspond to a 2D POLYGON, or to a 2D MULTILINESTRING, or even to a 2D GEOMETRYCOLLECTION.<br>
 A Relation object can reference any other kind of OSM objects: each <b>&lt;member&gt;</b> item can address a Node object, 
 a Way object or another Relation object; the \b type attribute will always specify the nature of the referenced object,
 and the optional \b role attribute may eventually better specify the intended scope.<br>
@@ -157,14 +157,14 @@ In order to actually process a <b>.osm.bz2</b> OSM file a two-steps approach is 
 - please note: the inflated file will require about 10/15 times the amount space required
   by the compressed file; many OSM XML files could actually be impressively huge (several GB).
 
-\section pbf Protocol Buffer (.osm.pbf) files
+\section pbf Protocol Buffer (.pbf) files
 
 An alternative OSM file format is based on the Google's Protocol Buffer encoding 
 [https://developers.google.com/protocol-buffers/docs/encoding]<br>
 This OSM format is based on a public and documented specification: [http://wiki.openstreetmap.org/wiki/PBF_Format]<br>
 
-OSM files based on Protocol Buffer encoding are usually identified by the <b>.osm.pbf</b> suffix.<br>
-The main benefit coming from using <b>.osm.pbf</b> files is in that they are much more compact
+OSM files based on Protocol Buffer encoding are usually identified by the <b>.pbf</b> suffix.<br>
+The main benefit coming from using <b>.pbf</b> files is in that they are much more compact
 (lessere size) than the corresponding <b>.osm.bz2</b>; and they can be immediately parsed, no
 preliminary decompression step being required at all.<br>
 
