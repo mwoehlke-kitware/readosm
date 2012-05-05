@@ -1,34 +1,35 @@
-# $Id: makefile.vc 2011/08/17 Sandro Furieri $
+# $Id: makefile.vc 2012/05/05 Sandro Furieri $
 #
-# NMAKE Makefile to build libfreexl on Windows
+# NMAKE Makefile to build libreadosm on Windows
 #
 !INCLUDE nmake.opt
 
-LIBOBJ	               =	freexl.obj
-FREEXL_DLL	 	       =	freexl$(VERSION).dll
+LIBOBJ	               =	src\readosm.obj src\osmxml.obj \
+							src\protobuf.obj src\osm_objects.obj
+READOSM_DLL	 	       =	readosm$(VERSION).dll
 
 CFLAGS	=	/nologo -IC:\OSGeo4W\include -Iheaders $(OPTFLAGS)
 
 default:	all
 
-all: freexl.lib freexl_i.lib
+all: readosm.lib readosm_i.lib
 
-$(LIBOBJ):	src\freexl.c
-	cl $(CFLAGS) src\freexl.c /c
+readosm.lib:	$(LIBOBJ)
+	if exist readosm.lib del readosm.lib
+	lib /out:readosm.lib $(LIBOBJ)
 
-freexl.lib:	$(LIBOBJ)
-	if exist freexl.lib del freexl.lib
-	lib /out:freexl.lib $(LIBOBJ)
+$(READOSM_DLL):	readosm_i.lib
 
-$(FREEXL_DLL):	freexl_i.lib
-
-freexl_i.lib:	$(LIBOBJ)
-	link /debug /dll /out:$(FREEXL_DLL) \
-		/implib:freexl_i.lib $(LIBOBJ) \
-		C:\OSGeo4w\lib\iconv.lib
+readosm_i.lib:	$(LIBOBJ)
+	link /debug /dll /out:$(READOSM_DLL) \
+		/implib:readosm_i.lib $(LIBOBJ) \
+		C:\OSGeo4w\lib\libexpat.lib C:\OSGeo4w\lib\zlib.lib
 	if exist $(FREEXL_DLL).manifest mt -manifest \
 		$(FREEXL_DLL).manifest -outputresource:$(FREEXL_DLL);2 
-
+		
+.c.obj:
+	$(CC) $(CFLAGS) /c $*.c /Fo$@
+	
 clean:
 	del *.dll
 	del *.exp
@@ -44,5 +45,5 @@ install: all
 	-mkdir $(INSTDIR)\include
 	copy *.dll $(INSTDIR)\bin
 	copy *.lib $(INSTDIR)\lib
-	copy headers\freexl.h $(INSTDIR)\include	
+	copy headers\readosm.h $(INSTDIR)\include	
 

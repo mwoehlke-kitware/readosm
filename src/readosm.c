@@ -51,6 +51,10 @@
 #include "readosm.h"
 #include "readosm_internals.h"
 
+#ifdef _WIN32
+#define strcasecmp	_stricmp
+#endif /* not WIN32 */
+
 static int
 test_endianness ()
 {
