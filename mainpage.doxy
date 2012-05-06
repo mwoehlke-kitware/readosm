@@ -104,7 +104,7 @@ The following is the XML general layout used to represent a Node object:
 
 \section Way
 
-A Way corresponds to a 2D LINESTRING Geometry: anyway the vertices never are directely
+A Way corresponds to a 2D LINESTRING Geometry: anyway the vertices never are directly
 defined within the Way itself; a list of indirectly referenced Nodes (<b>&lt;nd ref&gt;</b> items) is required instead.<br>
 The data attributes characterizing a Way are more or less the same used for Nodes, and with identical meaning;
 and for Ways too an arbitrary collection of Tags (\b key:value pairs) is supported.
@@ -165,7 +165,7 @@ This OSM format is based on a public and documented specification: [http://wiki.
 
 OSM files based on Protocol Buffer encoding are usually identified by the <b>.pbf</b> suffix.<br>
 The main benefit coming from using <b>.pbf</b> files is in that they are much more compact
-(lessere size) than the corresponding <b>.osm.bz2</b>; and they can be immediately parsed, no
+(smaller size) than the corresponding <b>.osm.bz2</b>; and they can be immediately parsed, no
 preliminary decompression step being required at all.<br>
 
 \section readosm Why using ReadOSM ?
