@@ -79,7 +79,7 @@ print_node (const void *user_data, const readosm_node * node)
 
 /*
 * some individual values may be set, or may be not
-* unset values are identified by the READOSM_UNDEFIND
+* unset values are identified by the READOSM_UNDEFINED
 * conventional value, and must be consequently ignored
 */
     if (node->latitude != READOSM_UNDEFINED)
@@ -166,7 +166,7 @@ print_way (const void *user_data, const readosm_way * way)
 
 /*
 * some individual values may be set, or may be not
-* unset values are identified by the READOSM_UNDEFIND
+* unset values are identified by the READOSM_UNDEFINED
 * conventional value, and must be consequently ignored
 */
     if (way->version != READOSM_UNDEFINED)
@@ -261,7 +261,7 @@ print_relation (const void *user_data, const readosm_relation * relation)
 
 /*
 * some individual values may be set, or may be not
-* unset values are identified by the READOSM_UNDEFIND
+* unset values are identified by the READOSM_UNDEFINED
 * conventional value, and must be consequently ignored
 */
     if (relation->version != READOSM_UNDEFINED)
@@ -370,7 +370,7 @@ main (int argc, char *argv[])
 
 /*
 * STEP #2: parsing the OSM file
-* this task is unbelievebly simple
+* this task is unbelievably simple
 *
 * you are simply required to pass the appropriate
 * pointers for callback funtions respectively intended
@@ -394,7 +394,7 @@ main (int argc, char *argv[])
 	  goto stop;
       }
 
-    fprintf (stderr, "Ok, OSM input file succesfully parsed\n");
+    fprintf (stderr, "Ok, OSM input file successfully parsed\n");
 
   stop:
 /*

@@ -144,7 +144,7 @@ main (int argc, char *argv[])
 
 /*
 * STEP #2: parsing the OSM file
-* this task is unbelievebly simple
+* this task is unbelievably simple
 *
 * you are simply required to pass the appropriate
 * pointers for callback funtions respectively intended

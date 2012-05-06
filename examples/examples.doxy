@@ -15,8 +15,7 @@ or
 \endverbatim
 
 Please note: the output produced by test_osm1 is usually verbose,
-so redirecting the standard output to some disk file is strongly
-suggested.
+so redirecting the standard output to a disk file is strongly recommended.
 */
 
 /** \example test_osm2.c
