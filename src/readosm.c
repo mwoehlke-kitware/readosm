@@ -48,6 +48,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "config.h"
+
 #include "readosm.h"
 #include "readosm_internals.h"
 

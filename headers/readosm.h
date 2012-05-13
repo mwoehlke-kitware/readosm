@@ -50,10 +50,17 @@
  Function declarations and constants for ReadOSM library
  */
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
+#ifdef _WIN32
 #ifdef DLL_EXPORT
 #define READOSM_DECLARE __declspec(dllexport)
+#define READOSM_PRIVATE
 #else
-#define READOSM_DECLARE extern
+#define READOSM_DECLARE __declspec(dllimport)
+#define READOSM_PRIVATE
+#endif
+#else
+#define READOSM_DECLARE __attribute__ ((visibility("default")))
+#define READOSM_PRIVATE __attribute__ ((visibility("hidden")))
 #endif
 #endif
 

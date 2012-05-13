@@ -18,7 +18,7 @@
 / 
 / Software distributed under the License is distributed on an "AS IS" basis,
 / WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
-/ for the specific language governing rights and limitations under the
+/ for the specific language governing rights and limitations under theskip:
 / License.
 /
 / The Original Code is the ReadOSM library
@@ -62,13 +62,23 @@
 #define READOSM_CURRENT_TAG_IS_WAY	102
 #define READOSM_CURRENT_TAG_IS_RELATION	103
 
+/* block size */
+#define READOSM_BLOCK_SZ	128
+
 typedef struct readosm_internal_tag_struct
 {
 /* a struct wrapping TAG items */
     char *key;			/* pointer to KEY value (NULL terminated string) */
     char *value;		/* pointer to VALUE (NULL terminated string) */
-    struct readosm_internal_tag_struct *next;	/* supporting linked list */
 } readosm_internal_tag;
+
+typedef struct readosm_internal_tag_block_struct
+{
+/* a struct wrapping a block of TAG items */
+    readosm_internal_tag tags[READOSM_BLOCK_SZ];	/* array of Tags */
+    int next_item;		/* index to next free (unused) item */
+    struct readosm_internal_tag_block_struct *next;	/* supporting linked list */
+} readosm_internal_tag_block;
 
 typedef struct readosm_export_tag_struct
 {
@@ -89,8 +99,8 @@ typedef struct readosm_internal_node_struct
     int uid;			/* uid identifying the user */
     char *timestamp;		/* last modified timestamp */
     int tag_count;		/* how many TAG items are there */
-    readosm_internal_tag *first_tag;	/* pointers supporting a linked list */
-    readosm_internal_tag *last_tag;	/* of TAG items */
+    readosm_internal_tag_block first_tag;	/* pointers supporting a linked list */
+    readosm_internal_tag_block *last_tag;	/* of TAG blocks (first block is static) */
 } readosm_internal_node;
 
 typedef struct readosm_export_node_struct
@@ -110,8 +120,9 @@ typedef struct readosm_export_node_struct
 
 typedef struct readosm_internal_ref_struct
 {
-/* a struct wrapping WAY-ND items */
-    long long node_ref;		/* referenced NODE-ID */
+/* a block of WAY-ND items */
+    long long node_refs[READOSM_BLOCK_SZ];	/* referenced NODE-ID array */
+    int next_item;		/* index to next free (unused) item */
     struct readosm_internal_ref_struct *next;	/* supporting linked list */
 } readosm_internal_ref;
 
@@ -125,11 +136,11 @@ typedef struct readosm_internal_way_struct
     int uid;			/* uid identifying the user */
     char *timestamp;		/* last modified timestamp */
     int ref_count;		/* how many WAY-ND items are there */
-    readosm_internal_ref *first_ref;	/* pointers supporting a linked list */
-    readosm_internal_ref *last_ref;	/* of WAY-ND items */
+    readosm_internal_ref first_ref;	/* pointers supporting a linked list */
+    readosm_internal_ref *last_ref;	/* of WAY-ND items (first block is static) */
     int tag_count;		/* how many TAG items are there */
-    readosm_internal_tag *first_tag;	/* pointers supporting a linked list */
-    readosm_internal_tag *last_tag;	/* of TAG items */
+    readosm_internal_tag_block first_tag;	/* pointers supporting a linked list */
+    readosm_internal_tag_block *last_tag;	/* of TAG blocks (first block is static) */
 } readosm_internal_way;
 
 typedef struct readosm_export_way_struct
@@ -153,8 +164,15 @@ typedef struct readosm_internal_member_struct
     int member_type;		/* member type [some READOSM_MEMBER_xx constant] */
     long long id;		/* ID of the referenced object */
     char *role;			/* pointer to role value (NULL terminated string) */
-    struct readosm_internal_member_struct *next;	/* supporting linked list */
 } readosm_internal_member;
+
+typedef struct readosm_internal_member_block_struct
+{
+/* a block of RELATION-MEMBER items */
+    readosm_internal_member members[READOSM_BLOCK_SZ];	/* array of MEMBERs */
+    int next_item;		/* index to next free (unused) item */
+    struct readosm_internal_member_block_struct *next;	/* supporting linked list */
+} readosm_internal_member_block;
 
 typedef struct readosm_export_member_struct
 {
@@ -174,11 +192,11 @@ typedef struct readosm_internal_relation_struct
     int uid;			/* uid identifying the user */
     char *timestamp;		/* last modified timestamp */
     int member_count;		/* how many RELATION-MEMBER items are there */
-    readosm_internal_member *first_member;	/* pointers supporting a linked list */
-    readosm_internal_member *last_member;	/* of RELATION-MEMBER items */
+    readosm_internal_member_block first_member;	/* pointers supporting a linked list */
+    readosm_internal_member_block *last_member;	/* of RELATION-MEMBER items (first block is static) */
     int tag_count;		/* how many TAG items are there */
-    readosm_internal_tag *first_tag;	/* pointers supporting a linked list */
-    readosm_internal_tag *last_tag;	/* of TAG items */
+    readosm_internal_tag_block first_tag;	/* pointers supporting a linked list */
+    readosm_internal_tag_block *last_tag;	/* of TAG-blocks (first block is static) */
 } readosm_internal_relation;
 
 typedef struct readosm_export_relation_struct
@@ -226,30 +244,50 @@ typedef struct readosm_file_struct
 } readosm_file;
 
 /* functions handling common OSM objects */
-readosm_internal_tag *alloc_internal_tag (void);
-void destroy_internal_tag (readosm_internal_tag * tag);
-readosm_internal_ref *alloc_internal_ref (void);
-void destroy_internal_ref (readosm_internal_ref * ref);
-readosm_internal_member *alloc_internal_member (void);
-void destroy_internal_member (readosm_internal_member * member);
-void init_internal_node (readosm_internal_node * node);
-void append_tag_to_node (readosm_internal_node * node, const char *key, const char *value);
-void destroy_internal_node (readosm_internal_node * node);
-readosm_internal_way *alloc_internal_way (void);
-void append_reference_to_way (readosm_internal_way * way, long long node_ref);
-void append_tag_to_way (readosm_internal_way * way, const char *key, const char *value);
-void destroy_internal_way (readosm_internal_way * way);
-readosm_internal_relation *alloc_internal_relation (void);
-void append_member_to_relation (readosm_internal_relation * relation, int type, long long id, const char *role);
-void append_tag_to_relation (readosm_internal_relation * relation, const char *key, const char *value);
-void destroy_internal_relation (readosm_internal_relation * relation);
+READOSM_PRIVATE void release_internal_tag_block (readosm_internal_tag_block *
+						 tag_block, int destroy);
+READOSM_PRIVATE void
+release_internal_member_block (readosm_internal_member_block * member_block,
+			       int destroy);
+READOSM_PRIVATE void init_internal_node (readosm_internal_node * node);
+READOSM_PRIVATE void append_tag_to_node (readosm_internal_node * node,
+					 const char *key, const char *value);
+READOSM_PRIVATE void destroy_internal_node (readosm_internal_node * node);
+READOSM_PRIVATE readosm_internal_way *alloc_internal_way (void);
+READOSM_PRIVATE void append_reference_to_way (readosm_internal_way * way,
+					      long long node_ref);
+READOSM_PRIVATE void append_tag_to_way (readosm_internal_way * way,
+					const char *key, const char *value);
+READOSM_PRIVATE void destroy_internal_way (readosm_internal_way * way);
+READOSM_PRIVATE readosm_internal_relation *alloc_internal_relation (void);
+READOSM_PRIVATE void append_member_to_relation (readosm_internal_relation *
+						relation, int type,
+						long long id, const char *role);
+READOSM_PRIVATE void append_tag_to_relation (readosm_internal_relation *
+					     relation, const char *key,
+					     const char *value);
+READOSM_PRIVATE void destroy_internal_relation (readosm_internal_relation *
+						relation);
 
 /* XML and ProtoBuf parsers */
-int parse_osm_pbf (readosm_file * input, const void *user_data, readosm_node_callback node_fnct, readosm_way_callback way_fnct, readosm_relation_callback relation_fnct);
-int parse_osm_xml (readosm_file * input, const void *user_data, readosm_node_callback node_fnct, readosm_way_callback way_fnct, readosm_relation_callback relation_fnct);
+READOSM_PRIVATE int parse_osm_pbf (readosm_file * input, const void *user_data,
+				   readosm_node_callback node_fnct,
+				   readosm_way_callback way_fnct,
+				   readosm_relation_callback relation_fnct);
+READOSM_PRIVATE int parse_osm_xml (readosm_file * input, const void *user_data,
+				   readosm_node_callback node_fnct,
+				   readosm_way_callback way_fnct,
+				   readosm_relation_callback relation_fnct);
 
 /* callback handlers */
-int call_node_callback (readosm_node_callback node_callback, const void *user_data, readosm_internal_node * node);
-int call_way_callback (readosm_way_callback way_callback, const void *user_data, readosm_internal_way * way);
-int call_relation_callback (readosm_relation_callback relation_callback, const void *user_data, readosm_internal_relation * relation);
-
+READOSM_PRIVATE int call_node_callback (readosm_node_callback node_callback,
+					const void *user_data,
+					readosm_internal_node * node);
+READOSM_PRIVATE int call_way_callback (readosm_way_callback way_callback,
+				       const void *user_data,
+				       readosm_internal_way * way);
+READOSM_PRIVATE int call_relation_callback (readosm_relation_callback
+					    relation_callback,
+					    const void *user_data,
+					    readosm_internal_relation *
+					    relation);

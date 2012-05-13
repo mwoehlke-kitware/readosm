@@ -48,34 +48,63 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "config.h"
+
 #include "readosm.h"
 #include "readosm_internals.h"
 
-readosm_internal_tag *
-alloc_internal_tag (void)
+static void
+release_internal_tag (readosm_internal_tag * tag)
 {
-/* allocating an empty internal TAG object */
-    readosm_internal_tag *tag = malloc (sizeof (readosm_internal_tag));
-    tag->key = NULL;
-    tag->value = NULL;
-    tag->next = NULL;
-    return tag;
-}
-
-void
-destroy_internal_tag (readosm_internal_tag * tag)
-{
-/* destroying an internal TAG object */
-    if (tag == NULL)
-	return;
+/* freeing an internal TAG object */
     if (tag->key)
 	free (tag->key);
     if (tag->value)
 	free (tag->value);
-    free (tag);
 }
 
-void
+READOSM_PRIVATE void
+release_internal_tag_block (readosm_internal_tag_block * tag_blk, int destroy)
+{
+/* freeing an internal TAG block */
+    int i_tag;
+    for (i_tag = 0; i_tag < tag_blk->next_item; i_tag++)
+	release_internal_tag (tag_blk->tags + i_tag);
+    if (destroy)
+	free (tag_blk);
+    else
+      {
+	  tag_blk->next_item = 0;
+	  tag_blk->next = NULL;
+      }
+}
+
+static void
+release_internal_member (readosm_internal_member * member)
+{
+/* freeing an internal MEMBER object */
+    if (member->role)
+	free (member->role);
+}
+
+READOSM_PRIVATE void
+release_internal_member_block (readosm_internal_member_block * mbr_blk,
+			       int destroy)
+{
+/* freeing an internal MEMBER block */
+    int i_mbr;
+    for (i_mbr = 0; i_mbr < mbr_blk->next_item; i_mbr++)
+	release_internal_member (mbr_blk->members + i_mbr);
+    if (destroy)
+	free (mbr_blk);
+    else
+      {
+	  mbr_blk->next_item = 0;
+	  mbr_blk->next = NULL;
+      }
+}
+
+READOSM_PRIVATE void
 init_export_tag (readosm_export_tag * tag)
 {
 /* initializing an empty export TAG object */
@@ -85,7 +114,7 @@ init_export_tag (readosm_export_tag * tag)
     tag->value = NULL;
 }
 
-void
+READOSM_PRIVATE void
 reset_export_tag (readosm_export_tag * tag)
 {
 /* resetting an export TAG object to initial empty state */
@@ -98,7 +127,7 @@ reset_export_tag (readosm_export_tag * tag)
     init_export_tag (tag);
 }
 
-void
+READOSM_PRIVATE void
 init_internal_node (readosm_internal_node * node)
 {
 /* allocating an empty internal NODE object */
@@ -111,49 +140,68 @@ init_internal_node (readosm_internal_node * node)
     node->uid = READOSM_UNDEFINED;
     node->timestamp = NULL;
     node->tag_count = 0;
-    node->first_tag = NULL;
-    node->last_tag = NULL;
+    node->first_tag.next_item = 0;
+    node->first_tag.next = NULL;
+    node->last_tag = &(node->first_tag);
 }
 
-void
+READOSM_PRIVATE void
 append_tag_to_node (readosm_internal_node * node, const char *key,
 		    const char *value)
 {
 /* appending a TAG to a Node object */
     int len;
-    readosm_internal_tag *tag = alloc_internal_tag ();
+    readosm_internal_tag_block *tag_blk = node->last_tag;
+    readosm_internal_tag *tag;
+    if (tag_blk->next_item < READOSM_BLOCK_SZ)
+      {
+/* a free Tag slot is available from the current block */
+	  tag = tag_blk->tags + tag_blk->next_item;
+	  tag_blk->next_item += 1;
+      }
+    else
+      {
+/* appending a further Tag block */
+	  tag_blk = malloc (sizeof (readosm_internal_tag_block));
+	  tag_blk->next_item = 1;
+	  tag_blk->next = NULL;
+	  tag = tag_blk->tags;
+	  node->last_tag->next = tag_blk;
+	  node->last_tag = tag_blk;
+      }
+
+/* initializing the Tag */
     len = strlen (key);
     tag->key = malloc (len + 1);
     strcpy (tag->key, key);
     len = strlen (value);
     tag->value = malloc (len + 1);
     strcpy (tag->value, value);
-    if (node->first_tag == NULL)
-	node->first_tag = tag;
-    if (node->last_tag != NULL)
-	node->last_tag->next = tag;
-    node->last_tag = tag;
 }
 
-void
+READOSM_PRIVATE void
 destroy_internal_node (readosm_internal_node * node)
 {
 /* destroying an internal NODE object */
-    readosm_internal_tag *tag;
-    readosm_internal_tag *tag_n;
+    readosm_internal_tag_block *tag_blk;
+    readosm_internal_tag_block *tag_blk_n;
     if (node == NULL)
 	return;
     if (node->user)
 	free (node->user);
     if (node->timestamp)
 	free (node->timestamp);
-    tag = node->first_tag;
-    while (tag)
+    tag_blk = &(node->first_tag);
+    while (tag_blk)
       {
-	  tag_n = tag->next;
-	  destroy_internal_tag (tag);
-	  tag = tag_n;
+	  tag_blk_n = tag_blk->next;
+	  if (tag_blk == &(node->first_tag))
+	      release_internal_tag_block (tag_blk, 0);
+	  else
+	      release_internal_tag_block (tag_blk, 1);
+	  tag_blk = tag_blk_n;
       }
+    node->last_tag = &(node->first_tag);
 }
 
 static void
@@ -195,26 +243,7 @@ reset_export_node (readosm_export_node * node)
     init_export_node (node);
 }
 
-readosm_internal_ref *
-alloc_internal_ref (void)
-{
-/* allocating an empty internal NODE-REF object */
-    readosm_internal_ref *ref = malloc (sizeof (readosm_internal_ref));
-    ref->node_ref = 0;
-    ref->next = NULL;
-    return ref;
-}
-
-void
-destroy_internal_ref (readosm_internal_ref * ref)
-{
-/* destroying an internal NODE-REF object */
-    if (ref == NULL)
-	return;
-    free (ref);
-}
-
-readosm_internal_way *
+READOSM_PRIVATE readosm_internal_way *
 alloc_internal_way (void)
 {
 /* allocating an empty internal WAY object */
@@ -226,74 +255,103 @@ alloc_internal_way (void)
     way->uid = 0;
     way->timestamp = NULL;
     way->ref_count = 0;
-    way->first_ref = NULL;
-    way->last_ref = NULL;
+    way->first_ref.next_item = 0;
+    way->first_ref.next = NULL;
+    way->last_ref = &(way->first_ref);
     way->tag_count = 0;
-    way->first_tag = NULL;
-    way->last_tag = NULL;
+    way->first_tag.next_item = 0;
+    way->first_tag.next = NULL;
+    way->last_tag = &(way->first_tag);
     return way;
 }
 
-void
+READOSM_PRIVATE void
 append_reference_to_way (readosm_internal_way * way, long long node_ref)
 {
 /* appending a NODE-REF to a WAY object */
-    readosm_internal_ref *ref = alloc_internal_ref ();
-    ref->node_ref = node_ref;
-    if (way->first_ref == NULL)
-	way->first_ref = ref;
-    if (way->last_ref != NULL)
-	way->last_ref->next = ref;
-    way->last_ref = ref;
+    readosm_internal_ref *ref = way->last_ref;
+    if (ref->next_item < READOSM_BLOCK_SZ)
+      {
+/* free Ref slot is available from the current block */
+	  *(ref->node_refs + ref->next_item) = node_ref;
+	  ref->next_item += 1;
+      }
+    else
+      {
+/* appending a further Ref block */
+	  ref = malloc (sizeof (readosm_internal_ref));
+	  *(ref->node_refs + 0) = node_ref;
+	  ref->next_item = 1;
+	  ref->next = NULL;
+	  way->last_ref->next = ref;
+	  way->last_ref = ref;
+      }
 }
 
-void
+READOSM_PRIVATE void
 append_tag_to_way (readosm_internal_way * way, const char *key,
 		   const char *value)
 {
 /* appending a TAG to a WAY object */
     int len;
-    readosm_internal_tag *tag = alloc_internal_tag ();
+    readosm_internal_tag_block *tag_blk = way->last_tag;
+    readosm_internal_tag *tag;
+    if (tag_blk->next_item < READOSM_BLOCK_SZ)
+      {
+/* a free Tag slot is available from the current block */
+	  tag = tag_blk->tags + tag_blk->next_item;
+	  tag_blk->next_item += 1;
+      }
+    else
+      {
+/* appending a further Tag block */
+	  tag_blk = malloc (sizeof (readosm_internal_tag_block));
+	  tag_blk->next_item = 1;
+	  tag_blk->next = NULL;
+	  tag = tag_blk->tags;
+	  way->last_tag->next = tag_blk;
+	  way->last_tag = tag_blk;
+      }
+
+/* initializing the Tag */
     len = strlen (key);
     tag->key = malloc (len + 1);
     strcpy (tag->key, key);
     len = strlen (value);
     tag->value = malloc (len + 1);
     strcpy (tag->value, value);
-    if (way->first_tag == NULL)
-	way->first_tag = tag;
-    if (way->last_tag != NULL)
-	way->last_tag->next = tag;
-    way->last_tag = tag;
 }
 
-void
+READOSM_PRIVATE void
 destroy_internal_way (readosm_internal_way * way)
 {
 /* destroying an internal WAY object */
     readosm_internal_ref *ref;
     readosm_internal_ref *ref_n;
-    readosm_internal_tag *tag;
-    readosm_internal_tag *tag_n;
+    readosm_internal_tag_block *tag_blk;
+    readosm_internal_tag_block *tag_blk_n;
     if (way == NULL)
 	return;
     if (way->user)
 	free (way->user);
     if (way->timestamp)
 	free (way->timestamp);
-    ref = way->first_ref;
+    ref = way->first_ref.next;
     while (ref)
       {
 	  ref_n = ref->next;
-	  destroy_internal_ref (ref);
+	  free (ref);
 	  ref = ref_n;
       }
-    tag = way->first_tag;
-    while (tag)
+    tag_blk = &(way->first_tag);
+    while (tag_blk)
       {
-	  tag_n = tag->next;
-	  destroy_internal_tag (tag);
-	  tag = tag_n;
+	  tag_blk_n = tag_blk->next;
+	  if (tag_blk == &(way->first_tag))
+	      release_internal_tag_block (tag_blk, 0);
+	  else
+	      release_internal_tag_block (tag_blk, 1);
+	  tag_blk = tag_blk_n;
       }
     free (way);
 }
@@ -339,29 +397,6 @@ reset_export_way (readosm_export_way * way)
     init_export_way (way);
 }
 
-readosm_internal_member *
-alloc_internal_member (void)
-{
-/* allocating an empty internal RELATION-MEMBER object */
-    readosm_internal_member *member = malloc (sizeof (readosm_internal_member));
-    member->member_type = READOSM_UNDEFINED;
-    member->id = 0;
-    member->role = NULL;
-    member->next = NULL;
-    return member;
-}
-
-void
-destroy_internal_member (readosm_internal_member * member)
-{
-/* destroying an internal RELATION-MEMBER object */
-    if (member == NULL)
-	return;
-    if (member->role)
-	free (member->role);
-    free (member);
-}
-
 static void
 init_export_member (readosm_export_member * member)
 {
@@ -384,7 +419,7 @@ reset_export_member (readosm_export_member * member)
     init_export_member (member);
 }
 
-readosm_internal_relation *
+READOSM_PRIVATE readosm_internal_relation *
 alloc_internal_relation (void)
 {
 /* allocating an empty internal RELATION object */
@@ -397,21 +432,42 @@ alloc_internal_relation (void)
     rel->uid = 0;
     rel->timestamp = NULL;
     rel->member_count = 0;
-    rel->first_member = NULL;
-    rel->last_member = NULL;
+    rel->first_member.next_item = 0;
+    rel->first_member.next = NULL;
+    rel->last_member = &(rel->first_member);
     rel->tag_count = 0;
-    rel->first_tag = NULL;
-    rel->last_tag = NULL;
+    rel->first_tag.next_item = 0;
+    rel->first_tag.next = NULL;
+    rel->last_tag = &(rel->first_tag);
     return rel;
 }
 
-void
+READOSM_PRIVATE void
 append_member_to_relation (readosm_internal_relation * relation, int type,
 			   long long id, const char *role)
 {
 /* appending a RELATION-MEMBER to a RELATION object */
     int len;
-    readosm_internal_member *member = alloc_internal_member ();
+    readosm_internal_member_block *mbr_blk = relation->last_member;
+    readosm_internal_member *member;
+    if (mbr_blk->next_item < READOSM_BLOCK_SZ)
+      {
+/* a free Member slot is available from the current block */
+	  member = mbr_blk->members + mbr_blk->next_item;
+	  mbr_blk->next_item += 1;
+      }
+    else
+      {
+/* appending a further Member block */
+	  mbr_blk = malloc (sizeof (readosm_internal_member_block));
+	  mbr_blk->next_item = 1;
+	  mbr_blk->next = NULL;
+	  member = mbr_blk->members;
+	  relation->last_member->next = mbr_blk;
+	  relation->last_member = mbr_blk;
+      }
+
+/* initializing the Tag */
     switch (type)
       {
       case 0:
@@ -428,60 +484,75 @@ append_member_to_relation (readosm_internal_relation * relation, int type,
     len = strlen (role);
     member->role = malloc (len + 1);
     strcpy (member->role, role);
-    if (relation->first_member == NULL)
-	relation->first_member = member;
-    if (relation->last_member != NULL)
-	relation->last_member->next = member;
-    relation->last_member = member;
 }
 
-void
+READOSM_PRIVATE void
 append_tag_to_relation (readosm_internal_relation * relation, const char *key,
 			const char *value)
 {
 /* appending a TAG to a RELATION object */
     int len;
-    readosm_internal_tag *tag = alloc_internal_tag ();
+    readosm_internal_tag_block *tag_blk = relation->last_tag;
+    readosm_internal_tag *tag;
+    if (tag_blk->next_item < READOSM_BLOCK_SZ)
+      {
+/* a free Tag slot is available from the current block */
+	  tag = tag_blk->tags + tag_blk->next_item;
+	  tag_blk->next_item += 1;
+      }
+    else
+      {
+/* appending a further Tag block */
+	  tag_blk = malloc (sizeof (readosm_internal_tag_block));
+	  tag_blk->next_item = 1;
+	  tag_blk->next = NULL;
+	  tag = tag_blk->tags;
+	  relation->last_tag->next = tag_blk;
+	  relation->last_tag = tag_blk;
+      }
+
+/* initializing the Tag */
     len = strlen (key);
     tag->key = malloc (len + 1);
     strcpy (tag->key, key);
     len = strlen (value);
     tag->value = malloc (len + 1);
     strcpy (tag->value, value);
-    if (relation->first_tag == NULL)
-	relation->first_tag = tag;
-    if (relation->last_tag != NULL)
-	relation->last_tag->next = tag;
-    relation->last_tag = tag;
 }
 
-void
+READOSM_PRIVATE void
 destroy_internal_relation (readosm_internal_relation * relation)
 {
-/* destroing an internal RELATION object */
-    readosm_internal_member *member;
-    readosm_internal_member *member_n;
-    readosm_internal_tag *tag;
-    readosm_internal_tag *tag_n;
+/* destroying an internal RELATION object */
+    readosm_internal_member_block *mbr_blk;
+    readosm_internal_member_block *mbr_blk_n;
+    readosm_internal_tag_block *tag_blk;
+    readosm_internal_tag_block *tag_blk_n;
     if (relation == NULL)
 	return;
     if (relation->user)
 	free (relation->user);
     if (relation->timestamp)
 	free (relation->timestamp);
-    member = relation->first_member;
-    while (member)
+    mbr_blk = &(relation->first_member);
+    while (mbr_blk)
       {
-	  member_n = member->next;
-	  destroy_internal_member (member);
-	  member = member_n;
+	  mbr_blk_n = mbr_blk->next;
+	  if (mbr_blk == &(relation->first_member))
+	      release_internal_member_block (mbr_blk, 0);
+	  else
+	      release_internal_member_block (mbr_blk, 1);
+	  mbr_blk = mbr_blk_n;
       }
-    tag = relation->first_tag;
-    while (tag)
+    tag_blk = &(relation->first_tag);
+    while (tag_blk)
       {
-	  tag_n = tag->next;
-	  destroy_internal_tag (tag);
-	  tag = tag_n;
+	  tag_blk_n = tag_blk->next;
+	  if (tag_blk == &(relation->first_tag))
+	      release_internal_tag_block (tag_blk, 0);
+	  else
+	      release_internal_tag_block (tag_blk, 1);
+	  tag_blk = tag_blk_n;
       }
     free (relation);
 }
@@ -533,7 +604,7 @@ reset_export_relation (readosm_export_relation * relation)
 }
 
 
-int
+READOSM_PRIVATE int
 call_node_callback (readosm_node_callback node_callback,
 		    const void *user_data, readosm_internal_node * node)
 {
@@ -541,6 +612,8 @@ call_node_callback (readosm_node_callback node_callback,
     int ret;
     int len;
     readosm_internal_tag *tag;
+    readosm_internal_tag_block *tag_blk;
+    int i_tag;
     readosm_export_node exp_node;
 
 /* 
@@ -573,11 +646,11 @@ call_node_callback (readosm_node_callback node_callback,
       }
 
 /* setting up the NODE-TAGs array */
-    tag = node->first_tag;
-    while (tag)
+    tag_blk = &(node->first_tag);
+    while (tag_blk)
       {
-	  exp_node.tag_count++;
-	  tag = tag->next;
+	  exp_node.tag_count += tag_blk->next_item;
+	  tag_blk = tag_blk->next;
       }
     if (exp_node.tag_count > 0)
       {
@@ -591,24 +664,28 @@ call_node_callback (readosm_node_callback node_callback,
 		init_export_tag (p_tag);
 	    }
 	  i = 0;
-	  tag = node->first_tag;
-	  while (tag)
+	  tag_blk = &(node->first_tag);
+	  while (tag_blk)
 	    {
-		p_tag = exp_node.tags + i;
-		if (tag->key != NULL)
+		for (i_tag = 0; i_tag < tag_blk->next_item; i_tag++)
 		  {
-		      len = strlen (tag->key);
-		      p_tag->key = malloc (len + 1);
-		      strcpy (p_tag->key, tag->key);
+		      tag = tag_blk->tags + i_tag;
+		      p_tag = exp_node.tags + i;
+		      if (tag->key != NULL)
+			{
+			    len = strlen (tag->key);
+			    p_tag->key = malloc (len + 1);
+			    strcpy (p_tag->key, tag->key);
+			}
+		      if (tag->value != NULL)
+			{
+			    len = strlen (tag->value);
+			    p_tag->value = malloc (len + 1);
+			    strcpy (p_tag->value, tag->value);
+			}
+		      i++;
 		  }
-		if (tag->value != NULL)
-		  {
-		      len = strlen (tag->value);
-		      p_tag->value = malloc (len + 1);
-		      strcpy (p_tag->value, tag->value);
-		  }
-		i++;
-		tag = tag->next;
+		tag_blk = tag_blk->next;
 	    }
       }
 
@@ -620,7 +697,7 @@ call_node_callback (readosm_node_callback node_callback,
     return ret;
 }
 
-int
+READOSM_PRIVATE int
 call_way_callback (readosm_way_callback way_callback,
 		   const void *user_data, readosm_internal_way * way)
 {
@@ -630,6 +707,9 @@ call_way_callback (readosm_way_callback way_callback,
     int i;
     readosm_internal_ref *ref;
     readosm_internal_tag *tag;
+    readosm_internal_tag_block *tag_blk;
+    int i_tag;
+    int i_ref;
     readosm_export_way exp_way;
 
 /* 
@@ -658,10 +738,10 @@ call_way_callback (readosm_way_callback way_callback,
 	  strcpy (exp_way.timestamp, way->timestamp);
       }
 
-    ref = way->first_ref;
+    ref = &(way->first_ref);
     while (ref)
       {
-	  exp_way.node_ref_count++;
+	  exp_way.node_ref_count += ref->next_item;
 	  ref = ref->next;
       }
 
@@ -671,21 +751,24 @@ call_way_callback (readosm_way_callback way_callback,
 	  exp_way.node_refs =
 	      malloc (sizeof (long long) * exp_way.node_ref_count);
 	  i = 0;
-	  ref = way->first_ref;
+	  ref = &(way->first_ref);
 	  while (ref)
 	    {
-		*(exp_way.node_refs + i) = ref->node_ref;
-		i++;
+		for (i_ref = 0; i_ref < ref->next_item; i_ref++)
+		  {
+		      *(exp_way.node_refs + i) = *(ref->node_refs + i_ref);
+		      i++;
+		  }
 		ref = ref->next;
 	    }
       }
 
 /* setting up the WAY-TAGs array */
-    tag = way->first_tag;
-    while (tag)
+    tag_blk = &(way->first_tag);
+    while (tag_blk)
       {
-	  exp_way.tag_count++;
-	  tag = tag->next;
+	  exp_way.tag_count += tag_blk->next_item;
+	  tag_blk = tag_blk->next;
       }
     if (exp_way.tag_count > 0)
       {
@@ -698,24 +781,28 @@ call_way_callback (readosm_way_callback way_callback,
 		init_export_tag (p_tag);
 	    }
 	  i = 0;
-	  tag = way->first_tag;
-	  while (tag)
+	  tag_blk = &(way->first_tag);
+	  while (tag_blk)
 	    {
-		p_tag = exp_way.tags + i;
-		if (tag->key != NULL)
+		for (i_tag = 0; i_tag < tag_blk->next_item; i_tag++)
 		  {
-		      len = strlen (tag->key);
-		      p_tag->key = malloc (len + 1);
-		      strcpy (p_tag->key, tag->key);
+		      tag = tag_blk->tags + i_tag;
+		      p_tag = exp_way.tags + i;
+		      if (tag->key != NULL)
+			{
+			    len = strlen (tag->key);
+			    p_tag->key = malloc (len + 1);
+			    strcpy (p_tag->key, tag->key);
+			}
+		      if (tag->value != NULL)
+			{
+			    len = strlen (tag->value);
+			    p_tag->value = malloc (len + 1);
+			    strcpy (p_tag->value, tag->value);
+			}
+		      i++;
 		  }
-		if (tag->value != NULL)
-		  {
-		      len = strlen (tag->value);
-		      p_tag->value = malloc (len + 1);
-		      strcpy (p_tag->value, tag->value);
-		  }
-		i++;
-		tag = tag->next;
+		tag_blk = tag_blk->next;
 	    }
       }
 
@@ -727,7 +814,7 @@ call_way_callback (readosm_way_callback way_callback,
     return ret;
 }
 
-int
+READOSM_PRIVATE int
 call_relation_callback (readosm_relation_callback relation_callback,
 			const void *user_data,
 			readosm_internal_relation * relation)
@@ -737,7 +824,11 @@ call_relation_callback (readosm_relation_callback relation_callback,
     int len;
     int i;
     readosm_internal_member *member;
+    readosm_internal_member_block *mbr_blk;
+    int i_mbr;
     readosm_internal_tag *tag;
+    readosm_internal_tag_block *tag_blk;
+    int i_tag;
     readosm_export_relation exp_relation;
 
 /* 
@@ -767,11 +858,11 @@ call_relation_callback (readosm_relation_callback relation_callback,
       }
 
 /* setting up the RELATION-MEMBERs array */
-    member = relation->first_member;
-    while (member)
+    mbr_blk = &(relation->first_member);
+    while (mbr_blk)
       {
-	  exp_relation.member_count++;
-	  member = member->next;
+	  exp_relation.member_count += mbr_blk->next_item;
+	  mbr_blk = mbr_blk->next;
       }
     if (exp_relation.member_count > 0)
       {
@@ -785,29 +876,33 @@ call_relation_callback (readosm_relation_callback relation_callback,
 		init_export_member (p_member);
 	    }
 	  i = 0;
-	  member = relation->first_member;
-	  while (member)
+	  mbr_blk = &(relation->first_member);
+	  while (mbr_blk)
 	    {
-		p_member = exp_relation.members + i;
-		p_member->member_type = member->member_type;
-		p_member->id = member->id;
-		if (member->role != NULL)
+		for (i_mbr = 0; i_mbr < mbr_blk->next_item; i_mbr++)
 		  {
-		      len = strlen (member->role);
-		      p_member->role = malloc (len + 1);
-		      strcpy (p_member->role, member->role);
+		      member = mbr_blk->members + i_mbr;
+		      p_member = exp_relation.members + i;
+		      p_member->member_type = member->member_type;
+		      p_member->id = member->id;
+		      if (member->role != NULL)
+			{
+			    len = strlen (member->role);
+			    p_member->role = malloc (len + 1);
+			    strcpy (p_member->role, member->role);
+			}
+		      i++;
 		  }
-		i++;
-		member = member->next;
+		mbr_blk = mbr_blk->next;
 	    }
       }
 
 /* setting up the RELATION-TAGs array */
-    tag = relation->first_tag;
-    while (tag)
+    tag_blk = &(relation->first_tag);
+    while (tag_blk)
       {
-	  exp_relation.tag_count++;
-	  tag = tag->next;
+	  exp_relation.tag_count += tag_blk->next_item;
+	  tag_blk = tag_blk->next;
       }
     if (exp_relation.tag_count > 0)
       {
@@ -820,24 +915,28 @@ call_relation_callback (readosm_relation_callback relation_callback,
 		init_export_tag (p_tag);
 	    }
 	  i = 0;
-	  tag = relation->first_tag;
-	  while (tag)
+	  tag_blk = &(relation->first_tag);
+	  while (tag_blk)
 	    {
-		p_tag = exp_relation.tags + i;
-		if (tag->key != NULL)
+		for (i_tag = 0; i_tag < tag_blk->next_item; i_tag++)
 		  {
-		      len = strlen (tag->key);
-		      p_tag->key = malloc (len + 1);
-		      strcpy (p_tag->key, tag->key);
+		      tag = tag_blk->tags + i_tag;
+		      p_tag = exp_relation.tags + i;
+		      if (tag->key != NULL)
+			{
+			    len = strlen (tag->key);
+			    p_tag->key = malloc (len + 1);
+			    strcpy (p_tag->key, tag->key);
+			}
+		      if (tag->value != NULL)
+			{
+			    len = strlen (tag->value);
+			    p_tag->value = malloc (len + 1);
+			    strcpy (p_tag->value, tag->value);
+			}
+		      i++;
 		  }
-		if (tag->value != NULL)
-		  {
-		      len = strlen (tag->value);
-		      p_tag->value = malloc (len + 1);
-		      strcpy (p_tag->value, tag->value);
-		  }
-		i++;
-		tag = tag->next;
+		tag_blk = tag_blk->next;
 	    }
       }
 
@@ -848,4 +947,3 @@ call_relation_callback (readosm_relation_callback relation_callback,
     reset_export_relation (&exp_relation);
     return ret;
 }
-

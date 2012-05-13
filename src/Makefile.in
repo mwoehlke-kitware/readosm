@@ -37,7 +37,10 @@ host_triplet = @host@
 subdir = src
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/configure.ac
+am__aclocal_m4_deps = $(top_srcdir)/m4/libtool.m4 \
+	$(top_srcdir)/m4/ltoptions.m4 $(top_srcdir)/m4/ltsugar.m4 \
+	$(top_srcdir)/m4/ltversion.m4 $(top_srcdir)/m4/lt~obsolete.m4 \
+	$(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
@@ -68,12 +71,13 @@ am__base_list = \
 am__installdirs = "$(DESTDIR)$(libdir)"
 LTLIBRARIES = $(lib_LTLIBRARIES)
 libreadosm_la_LIBADD =
-am_libreadosm_la_OBJECTS = readosm.lo osm_objects.lo osmxml.lo \
-	protobuf.lo
+am_libreadosm_la_OBJECTS = libreadosm_la-readosm.lo \
+	libreadosm_la-osm_objects.lo libreadosm_la-osmxml.lo \
+	libreadosm_la-protobuf.lo
 libreadosm_la_OBJECTS = $(am_libreadosm_la_OBJECTS)
 libreadosm_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
-	$(libreadosm_la_LDFLAGS) $(LDFLAGS) -o $@
+	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(libreadosm_la_CFLAGS) \
+	$(CFLAGS) $(libreadosm_la_LDFLAGS) $(LDFLAGS) -o $@
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
@@ -215,6 +219,7 @@ top_srcdir = @top_srcdir@
 INCLUDES = -I$(top_srcdir)/headers -I$(top_srcdir)
 lib_LTLIBRARIES = libreadosm.la 
 libreadosm_la_SOURCES = readosm.c osm_objects.c osmxml.c protobuf.c
+libreadosm_la_CFLAGS = -fvisibility=hidden
 libreadosm_la_LDFLAGS = -version-info 1:0:0 -no-undefined
 MOSTLYCLEANFILES = *.gcna *.gcno *.gcda
 all: all-am
@@ -230,9 +235,9 @@ $(srcdir)/Makefile.in: @MAINTAINER_MODE_TRUE@ $(srcdir)/Makefile.am  $(am__confi
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign src/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu src/Makefile'; \
 	$(am__cd) $(top_srcdir) && \
-	  $(AUTOMAKE) --foreign src/Makefile
+	  $(AUTOMAKE) --gnu src/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
@@ -291,10 +296,10 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/osm_objects.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/osmxml.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/protobuf.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/readosm.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libreadosm_la-osm_objects.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libreadosm_la-osmxml.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libreadosm_la-protobuf.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libreadosm_la-readosm.Plo@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -316,6 +321,34 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(LTCOMPILE) -c -o $@ $<
+
+libreadosm_la-readosm.lo: readosm.c
+@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libreadosm_la_CFLAGS) $(CFLAGS) -MT libreadosm_la-readosm.lo -MD -MP -MF $(DEPDIR)/libreadosm_la-readosm.Tpo -c -o libreadosm_la-readosm.lo `test -f 'readosm.c' || echo '$(srcdir)/'`readosm.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libreadosm_la-readosm.Tpo $(DEPDIR)/libreadosm_la-readosm.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='readosm.c' object='libreadosm_la-readosm.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libreadosm_la_CFLAGS) $(CFLAGS) -c -o libreadosm_la-readosm.lo `test -f 'readosm.c' || echo '$(srcdir)/'`readosm.c
+
+libreadosm_la-osm_objects.lo: osm_objects.c
+@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libreadosm_la_CFLAGS) $(CFLAGS) -MT libreadosm_la-osm_objects.lo -MD -MP -MF $(DEPDIR)/libreadosm_la-osm_objects.Tpo -c -o libreadosm_la-osm_objects.lo `test -f 'osm_objects.c' || echo '$(srcdir)/'`osm_objects.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libreadosm_la-osm_objects.Tpo $(DEPDIR)/libreadosm_la-osm_objects.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='osm_objects.c' object='libreadosm_la-osm_objects.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libreadosm_la_CFLAGS) $(CFLAGS) -c -o libreadosm_la-osm_objects.lo `test -f 'osm_objects.c' || echo '$(srcdir)/'`osm_objects.c
+
+libreadosm_la-osmxml.lo: osmxml.c
+@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libreadosm_la_CFLAGS) $(CFLAGS) -MT libreadosm_la-osmxml.lo -MD -MP -MF $(DEPDIR)/libreadosm_la-osmxml.Tpo -c -o libreadosm_la-osmxml.lo `test -f 'osmxml.c' || echo '$(srcdir)/'`osmxml.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libreadosm_la-osmxml.Tpo $(DEPDIR)/libreadosm_la-osmxml.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='osmxml.c' object='libreadosm_la-osmxml.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libreadosm_la_CFLAGS) $(CFLAGS) -c -o libreadosm_la-osmxml.lo `test -f 'osmxml.c' || echo '$(srcdir)/'`osmxml.c
+
+libreadosm_la-protobuf.lo: protobuf.c
+@am__fastdepCC_TRUE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libreadosm_la_CFLAGS) $(CFLAGS) -MT libreadosm_la-protobuf.lo -MD -MP -MF $(DEPDIR)/libreadosm_la-protobuf.Tpo -c -o libreadosm_la-protobuf.lo `test -f 'protobuf.c' || echo '$(srcdir)/'`protobuf.c
+@am__fastdepCC_TRUE@	$(am__mv) $(DEPDIR)/libreadosm_la-protobuf.Tpo $(DEPDIR)/libreadosm_la-protobuf.Plo
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='protobuf.c' object='libreadosm_la-protobuf.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(libreadosm_la_CFLAGS) $(CFLAGS) -c -o libreadosm_la-protobuf.lo `test -f 'protobuf.c' || echo '$(srcdir)/'`protobuf.c
 
 mostlyclean-libtool:
 	-rm -f *.lo

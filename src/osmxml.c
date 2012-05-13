@@ -50,6 +50,8 @@
 
 #include <expat.h>
 
+#include "config.h"
+
 #include "readosm.h"
 #include "readosm_internals.h"
 
@@ -96,8 +98,9 @@ xml_init_params (struct xml_params *params, const void *user_data,
     params->node.uid = READOSM_UNDEFINED;
     params->node.timestamp = NULL;
     params->node.tag_count = 0;
-    params->node.first_tag = NULL;
-    params->node.last_tag = NULL;
+    params->node.first_tag.next_item = 0;
+    params->node.first_tag.next = NULL;
+    params->node.last_tag = &(params->node.first_tag);
 
     params->way.id = READOSM_UNDEFINED;
     params->way.version = READOSM_UNDEFINED;
@@ -106,11 +109,13 @@ xml_init_params (struct xml_params *params, const void *user_data,
     params->way.uid = READOSM_UNDEFINED;
     params->way.timestamp = NULL;
     params->way.ref_count = 0;
-    params->way.first_ref = NULL;
-    params->way.last_ref = NULL;
+    params->way.first_ref.next_item = 0;
+    params->way.first_ref.next = NULL;
+    params->way.last_ref = &(params->way.first_ref);
     params->way.tag_count = 0;
-    params->way.first_tag = NULL;
-    params->way.last_tag = NULL;
+    params->way.first_tag.next_item = 0;
+    params->way.first_tag.next = NULL;
+    params->way.last_tag = &(params->way.first_tag);
 
     params->relation.id = READOSM_UNDEFINED;
     params->relation.version = READOSM_UNDEFINED;
@@ -119,11 +124,13 @@ xml_init_params (struct xml_params *params, const void *user_data,
     params->relation.uid = READOSM_UNDEFINED;
     params->relation.timestamp = NULL;
     params->relation.member_count = 0;
-    params->relation.first_member = NULL;
-    params->relation.last_member = NULL;
+    params->relation.first_member.next_item = 0;
+    params->relation.first_member.next = NULL;
+    params->relation.last_member = &(params->relation.first_member);
     params->relation.tag_count = 0;
-    params->relation.first_tag = NULL;
-    params->relation.last_tag = NULL;
+    params->relation.first_tag.next_item = 0;
+    params->relation.first_tag.next = NULL;
+    params->relation.last_tag = &(params->relation.first_tag);
 
     params->stop = stop;
 }
@@ -132,62 +139,90 @@ static void
 xml_reset_params (struct xml_params *params)
 {
 /* resetting the XML helper structure to initial empty state */
-    readosm_internal_tag *tag;
-    readosm_internal_tag *tag_n;
+    readosm_internal_tag_block *tag_blk;
+    readosm_internal_tag_block *tag_blk_n;
     readosm_internal_ref *ref;
     readosm_internal_ref *ref_n;
-    readosm_internal_member *member;
-    readosm_internal_member *member_n;
+    readosm_internal_member_block *mbr_blk;
+    readosm_internal_member_block *mbr_blk_n;
 
     if (params->node.user)
 	free (params->node.user);
     if (params->node.timestamp)
+
 	free (params->node.timestamp);
-    tag = params->node.first_tag;
-    while (tag)
+    tag_blk = &(params->node.first_tag);
+    while (tag_blk)
       {
-	  tag_n = tag->next;
-	  destroy_internal_tag (tag);
-	  tag = tag_n;
+	  tag_blk_n = tag_blk->next;
+	  if (tag_blk == &(params->node.first_tag))
+	      release_internal_tag_block (tag_blk, 0);
+	  else
+	      release_internal_tag_block (tag_blk, 1);
+	  tag_blk = tag_blk_n;
       }
+    params->node.first_tag.next_item = 0;
+    params->node.first_tag.next = NULL;
+    params->node.last_tag = &(params->node.first_tag);
 
     if (params->way.user)
 	free (params->way.user);
     if (params->way.timestamp)
 	free (params->way.timestamp);
-    ref = params->way.first_ref;
+    ref = params->way.first_ref.next;
     while (ref)
       {
 	  ref_n = ref->next;
-	  destroy_internal_ref (ref);
+	  free (ref);
 	  ref = ref_n;
       }
-    tag = params->way.first_tag;
-    while (tag)
+    params->way.first_ref.next_item = 0;
+    params->way.first_ref.next = NULL;
+    params->way.last_ref = &(params->way.first_ref);
+    tag_blk = &(params->way.first_tag);
+    while (tag_blk)
       {
-	  tag_n = tag->next;
-	  destroy_internal_tag (tag);
-	  tag = tag_n;
+	  tag_blk_n = tag_blk->next;
+	  if (tag_blk == &(params->way.first_tag))
+	      release_internal_tag_block (tag_blk, 0);
+	  else
+	      release_internal_tag_block (tag_blk, 1);
+	  tag_blk = tag_blk_n;
       }
+    params->way.first_tag.next_item = 0;
+    params->way.first_tag.next = NULL;
+    params->way.last_tag = &(params->way.first_tag);
 
     if (params->relation.user)
 	free (params->relation.user);
     if (params->relation.timestamp)
 	free (params->relation.timestamp);
-    member = params->relation.first_member;
-    while (member)
+    mbr_blk = &(params->relation.first_member);
+    while (mbr_blk)
       {
-	  member_n = member->next;
-	  destroy_internal_member (member);
-	  member = member_n;
+	  mbr_blk_n = mbr_blk->next;
+	  if (mbr_blk == &(params->relation.first_member))
+	      release_internal_member_block (mbr_blk, 0);
+	  else
+	      release_internal_member_block (mbr_blk, 1);
+	  mbr_blk = mbr_blk_n;
       }
-    tag = params->relation.first_tag;
-    while (tag)
+    params->relation.first_member.next_item = 0;
+    params->relation.first_member.next = NULL;
+    params->relation.last_member = &(params->relation.first_member);
+    tag_blk = &(params->relation.first_tag);
+    while (tag_blk)
       {
-	  tag_n = tag->next;
-	  destroy_internal_tag (tag);
-	  tag = tag_n;
+	  tag_blk_n = tag_blk->next;
+	  if (tag_blk == &(params->relation.first_tag))
+	      release_internal_tag_block (tag_blk, 0);
+	  else
+	      release_internal_tag_block (tag_blk, 1);
+	  tag_blk = tag_blk_n;
       }
+    params->relation.first_tag.next_item = 0;
+    params->relation.first_tag.next = NULL;
+    params->relation.last_tag = &(params->relation.first_tag);
 
     xml_init_params (params, params->user_data, params->node_callback,
 		     params->way_callback, params->relation_callback,
@@ -345,54 +380,27 @@ static void
 xml_start_xtag (struct xml_params *params, const char **attr)
 {
 /* an XML Tag starts here */
-    readosm_internal_tag *tag;
+    const char *key = NULL;
+    const char *value = NULL;
     int i;
-    int len;
 
     if (params->current_tag == READOSM_CURRENT_TAG_IS_NODE
 	|| params->current_tag == READOSM_CURRENT_TAG_IS_WAY
 	|| params->current_tag == READOSM_CURRENT_TAG_IS_RELATION)
       {
-	  tag = alloc_internal_tag ();
 	  for (i = 0; attr[i]; i += 2)
 	    {
 		if (strcmp (attr[i], "k") == 0)
-		  {
-		      len = strlen (attr[i + 1]);
-		      tag->key = malloc (len + 1);
-		      strcpy (tag->key, attr[i + 1]);
-		  }
+		    key = attr[i + 1];
 		if (strcmp (attr[i], "v") == 0)
-		  {
-		      len = strlen (attr[i + 1]);
-		      tag->value = malloc (len + 1);
-		      strcpy (tag->value, attr[i + 1]);
-		  }
+		    value = attr[i + 1];
 	    }
 	  if (params->current_tag == READOSM_CURRENT_TAG_IS_NODE)
-	    {
-		if (params->node.first_tag == NULL)
-		    params->node.first_tag = tag;
-		if (params->node.last_tag != NULL)
-		    params->node.last_tag->next = tag;
-		params->node.last_tag = tag;
-	    }
+	      append_tag_to_node (&(params->node), key, value);
 	  if (params->current_tag == READOSM_CURRENT_TAG_IS_WAY)
-	    {
-		if (params->way.first_tag == NULL)
-		    params->way.first_tag = tag;
-		if (params->way.last_tag != NULL)
-		    params->way.last_tag->next = tag;
-		params->way.last_tag = tag;
-	    }
+	      append_tag_to_way (&(params->way), key, value);
 	  if (params->current_tag == READOSM_CURRENT_TAG_IS_RELATION)
-	    {
-		if (params->relation.first_tag == NULL)
-		    params->relation.first_tag = tag;
-		if (params->relation.last_tag != NULL)
-		    params->relation.last_tag->next = tag;
-		params->relation.last_tag = tag;
-	    }
+	      append_tag_to_relation (&(params->relation), key, value);
       }
 }
 
@@ -405,17 +413,12 @@ xml_start_nd (struct xml_params *params, const char **attr)
 
     if (params->current_tag == READOSM_CURRENT_TAG_IS_WAY)
       {
-	  ref = alloc_internal_ref ();
 	  for (i = 0; attr[i]; i += 2)
 	    {
 		if (strcmp (attr[i], "ref") == 0)
-		    ref->node_ref = atol_64 (attr[i + 1]);
+		    append_reference_to_way (&(params->way),
+					     atol_64 (attr[i + 1]));
 	    }
-	  if (params->way.first_ref == NULL)
-	      params->way.first_ref = ref;
-	  if (params->way.last_ref != NULL)
-	      params->way.last_ref->next = ref;
-	  params->way.last_ref = ref;
       }
 }
 
@@ -423,38 +426,30 @@ static void
 xml_start_member (struct xml_params *params, const char **attr)
 {
 /* an XML Member starts here */
-    readosm_internal_member *member;
+    long long id = 0;
+    int type = READOSM_UNDEFINED;
+    const char *role = NULL;
     int i;
-    int len;
 
     if (params->current_tag == READOSM_CURRENT_TAG_IS_RELATION)
       {
-	  member = alloc_internal_member ();
 	  for (i = 0; attr[i]; i += 2)
 	    {
 		if (strcmp (attr[i], "ref") == 0)
-		    member->id = atol_64 (attr[i + 1]);
+		    id = atol_64 (attr[i + 1]);
 		if (strcmp (attr[i], "type") == 0)
 		  {
 		      if (strcmp (attr[i + 1], "node") == 0)
-			  member->member_type = READOSM_MEMBER_NODE;
+			  type = READOSM_MEMBER_NODE;
 		      if (strcmp (attr[i + 1], "way") == 0)
-			  member->member_type = READOSM_MEMBER_WAY;
+			  type = READOSM_MEMBER_WAY;
 		      if (strcmp (attr[i + 1], "relation") == 0)
-			  member->member_type = READOSM_MEMBER_RELATION;
+			  type = READOSM_MEMBER_RELATION;
 		  }
 		if (strcmp (attr[i], "role") == 0)
-		  {
-		      len = strlen (attr[i + 1]);
-		      member->role = malloc (len + 1);
-		      strcpy (member->role, attr[i + 1]);
-		  }
+		    role = attr[i + 1];
 	    }
-	  if (params->relation.first_member == NULL)
-	      params->relation.first_member = member;
-	  if (params->relation.last_member != NULL)
-	      params->relation.last_member->next = member;
-	  params->relation.last_member = member;
+	  append_member_to_relation (&(params->relation), type, id, role);
       }
 }
 
@@ -490,7 +485,7 @@ xml_end_tag (void *data, const char *el)
 	xml_end_relation (params);
 }
 
-int
+READOSM_PRIVATE int
 parse_osm_xml (readosm_file * input, const void *user_data,
 	       readosm_node_callback node_fnct, readosm_way_callback way_fnct,
 	       readosm_relation_callback relation_fnct)
@@ -525,4 +520,3 @@ parse_osm_xml (readosm_file * input, const void *user_data,
 
     return READOSM_OK;
 }
-

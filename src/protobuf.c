@@ -52,6 +52,8 @@
 
 #include <zlib.h>
 
+#include "config.h"
+
 #include "readosm.h"
 #include "readosm_internals.h"
 #include "readosm_protobuf.h"
@@ -2140,6 +2142,8 @@ parse_primitive_group (readosm_string_table * strings,
 	  if (variant.field_id == 2 && variant.type == READOSM_LEN_BYTES)
 	    {
 		/* DenseNodes */
+		if (params->node_callback == NULL)
+		    goto skip;	/* skipping: no node-callback */
 		if (!parse_pbf_nodes
 		    (strings, variant.pointer,
 		     variant.pointer + variant.length - 1,
@@ -2149,6 +2153,8 @@ parse_primitive_group (readosm_string_table * strings,
 	  if (variant.field_id == 3 && variant.type == READOSM_LEN_BYTES)
 	    {
 		/* Way */
+		if (params->way_callback == NULL)
+		    goto skip;	/* skipping: no way-callback */
 		if (!parse_pbf_way
 		    (strings, variant.pointer,
 		     variant.pointer + variant.length - 1,
@@ -2158,12 +2164,15 @@ parse_primitive_group (readosm_string_table * strings,
 	  if (variant.field_id == 4 && variant.type == READOSM_LEN_BYTES)
 	    {
 		/* Relation */
+		if (params->relation_callback == NULL)
+		    goto skip;	/* skipping: no relation-callback */
 		if (!parse_pbf_relation
 		    (strings, variant.pointer,
 		     variant.pointer + variant.length - 1,
 		     variant.little_endian_cpu, params))
 		    goto error;
 	    }
+	skip:
 	  if (base > stop)
 	      break;
       }
@@ -2356,7 +2365,7 @@ parse_osm_data (readosm_file * input, unsigned int sz,
     return 0;
 }
 
-int
+READOSM_PRIVATE int
 parse_osm_pbf (readosm_file * input, const void *user_data,
 	       readosm_node_callback node_fnct, readosm_way_callback way_fnct,
 	       readosm_relation_callback relation_fnct)
@@ -2406,4 +2415,3 @@ parse_osm_pbf (readosm_file * input, const void *user_data,
       }
     return READOSM_OK;
 }
-

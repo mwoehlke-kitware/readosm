@@ -205,4 +205,3 @@ typedef struct readosm_int64_packed_struct
     int count;
     long long *values;
 } readosm_int64_packed;
-
