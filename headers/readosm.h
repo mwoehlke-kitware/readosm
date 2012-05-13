@@ -55,7 +55,7 @@
 #define READOSM_DECLARE __declspec(dllexport)
 #define READOSM_PRIVATE
 #else
-#define READOSM_DECLARE __declspec(dllimport)
+#define READOSM_DECLARE extern
 #define READOSM_PRIVATE
 #endif
 #else

@@ -50,7 +50,11 @@
 
 #include <expat.h>
 
+#if defined(_WIN32) && !defined(__MINGW32__)
+/* MSVC: avoiding to include at all config.h */
+#else
 #include "config.h"
+#endif
 
 #include "readosm.h"
 #include "readosm_internals.h"
@@ -408,7 +412,6 @@ static void
 xml_start_nd (struct xml_params *params, const char **attr)
 {
 /* an XML Nd starts here */
-    readosm_internal_ref *ref;
     int i;
 
     if (params->current_tag == READOSM_CURRENT_TAG_IS_WAY)

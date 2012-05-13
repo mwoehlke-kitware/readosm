@@ -48,7 +48,11 @@
 #include <stdio.h>
 #include <string.h>
 
+#if defined(_WIN32) && !defined(__MINGW32__)
+/* MSVC: avoiding to include at all config.h */
+#else
 #include "config.h"
+#endif
 
 #include "readosm.h"
 #include "readosm_internals.h"
@@ -155,13 +159,13 @@ append_tag_to_node (readosm_internal_node * node, const char *key,
     readosm_internal_tag *tag;
     if (tag_blk->next_item < READOSM_BLOCK_SZ)
       {
-/* a free Tag slot is available from the current block */
+	  /* a free Tag slot is available from the current block */
 	  tag = tag_blk->tags + tag_blk->next_item;
 	  tag_blk->next_item += 1;
       }
     else
       {
-/* appending a further Tag block */
+	  /* appending a further Tag block */
 	  tag_blk = malloc (sizeof (readosm_internal_tag_block));
 	  tag_blk->next_item = 1;
 	  tag_blk->next = NULL;
@@ -272,13 +276,13 @@ append_reference_to_way (readosm_internal_way * way, long long node_ref)
     readosm_internal_ref *ref = way->last_ref;
     if (ref->next_item < READOSM_BLOCK_SZ)
       {
-/* free Ref slot is available from the current block */
+	  /* free Ref slot is available from the current block */
 	  *(ref->node_refs + ref->next_item) = node_ref;
 	  ref->next_item += 1;
       }
     else
       {
-/* appending a further Ref block */
+	  /* appending a further Ref block */
 	  ref = malloc (sizeof (readosm_internal_ref));
 	  *(ref->node_refs + 0) = node_ref;
 	  ref->next_item = 1;
@@ -298,13 +302,13 @@ append_tag_to_way (readosm_internal_way * way, const char *key,
     readosm_internal_tag *tag;
     if (tag_blk->next_item < READOSM_BLOCK_SZ)
       {
-/* a free Tag slot is available from the current block */
+	  /* a free Tag slot is available from the current block */
 	  tag = tag_blk->tags + tag_blk->next_item;
 	  tag_blk->next_item += 1;
       }
     else
       {
-/* appending a further Tag block */
+	  /* appending a further Tag block */
 	  tag_blk = malloc (sizeof (readosm_internal_tag_block));
 	  tag_blk->next_item = 1;
 	  tag_blk->next = NULL;
@@ -452,13 +456,13 @@ append_member_to_relation (readosm_internal_relation * relation, int type,
     readosm_internal_member *member;
     if (mbr_blk->next_item < READOSM_BLOCK_SZ)
       {
-/* a free Member slot is available from the current block */
+	  /* a free Member slot is available from the current block */
 	  member = mbr_blk->members + mbr_blk->next_item;
 	  mbr_blk->next_item += 1;
       }
     else
       {
-/* appending a further Member block */
+	  /* appending a further Member block */
 	  mbr_blk = malloc (sizeof (readosm_internal_member_block));
 	  mbr_blk->next_item = 1;
 	  mbr_blk->next = NULL;
@@ -496,13 +500,13 @@ append_tag_to_relation (readosm_internal_relation * relation, const char *key,
     readosm_internal_tag *tag;
     if (tag_blk->next_item < READOSM_BLOCK_SZ)
       {
-/* a free Tag slot is available from the current block */
+	  /* a free Tag slot is available from the current block */
 	  tag = tag_blk->tags + tag_blk->next_item;
 	  tag_blk->next_item += 1;
       }
     else
       {
-/* appending a further Tag block */
+	  /* appending a further Tag block */
 	  tag_blk = malloc (sizeof (readosm_internal_tag_block));
 	  tag_blk->next_item = 1;
 	  tag_blk->next = NULL;

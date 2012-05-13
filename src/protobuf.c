@@ -52,11 +52,17 @@
 
 #include <zlib.h>
 
+#if defined(_WIN32) && !defined(__MINGW32__)
+/* MSVC: avoiding to include at all config.h */
+#else
 #include "config.h"
+#endif
 
 #include "readosm.h"
 #include "readosm_internals.h"
 #include "readosm_protobuf.h"
+
+#define MAX_NODES 1024
 
 struct pbf_params
 {
@@ -1464,88 +1470,133 @@ parse_pbf_nodes (readosm_string_table * strings,
 	  long long delta_id = 0;
 	  long long delta_lat = 0;
 	  long long delta_lon = 0;
+	  int max_nodes;
+	  int base = 0;
 	  nd_count = packed_ids.count;
-	  nodes = malloc (sizeof (readosm_internal_node) * nd_count);
-	  for (i = 0; i < nd_count; i++)
+	  while (base < nd_count)
 	    {
-		/* initializing an array of empty internal Nodes */
-		nd = nodes + i;
-		init_internal_node (nd);
-	    }
-	  for (i = 0; i < nd_count; i++)
-	    {
-		/* reassembling internal Nodes */
-		const char *key = NULL;
-		const char *value = NULL;
-		time_t xtime;
-		struct tm *times;
-		int s_id;
-		nd = nodes + i;
-		delta_id += *(packed_ids.values + i);
-		delta_lat += *(packed_lats.values + i);
-		delta_lon += *(packed_lons.values + i);
-		nd->id = delta_id;
-		/* latitudes and longitudes require to be rescaled as DOUBLEs */
-		nd->latitude = delta_lat / 10000000.0;
-		nd->longitude = delta_lon / 10000000.0;
-		nd->version = *(packed_infos.versions + i);
-		xtime = *(packed_infos.timestamps + i);
-		times = gmtime (&xtime);
-		if (times)
+		/* processing about 1024 nodes at each time */
+		max_nodes = MAX_NODES;
+		if ((nd_count - base) < MAX_NODES)
+		    max_nodes = nd_count - base;
+		nodes = malloc (sizeof (readosm_internal_node) * max_nodes);
+		for (i = 0; i < max_nodes; i++)
 		  {
-		      /* formatting Timestamps */
-		      char buf[64];
-		      int len;
-		      sprintf (buf, "%04d-%02d-%02dT%02d:%02d:%02dZ",
-			       times->tm_year + 1900, times->tm_mon + 1,
-			       times->tm_mday, times->tm_hour, times->tm_min,
-			       times->tm_sec);
-		      if (nd->timestamp)
-			  free (nd->timestamp);
-		      len = strlen (buf);
-		      nd->timestamp = malloc (len + 1);
-		      strcpy (nd->timestamp, buf);
+		      /* initializing an array of empty internal Nodes */
+		      nd = nodes + i;
+		      init_internal_node (nd);
 		  }
-		nd->changeset = *(packed_infos.changesets + i);
-		if (*(packed_infos.uids + i) >= 0)
-		    nd->uid = *(packed_infos.uids + i);
-		s_id = *(packed_infos.users + i);
-		if (s_id > 0)
+		for (i = 0; i < max_nodes; i++)
 		  {
-		      /* retrieving user-names as strings (by index) */
-		      readosm_string *s_ptr = *(strings->strings + s_id);
-		      int len = strlen (s_ptr->string);
-		      if (nd->user != NULL)
-			  free (nd->user);
-		      if (len > 0)
+		      /* reassembling internal Nodes */
+		      const char *key = NULL;
+		      const char *value = NULL;
+		      time_t xtime;
+		      struct tm *times;
+		      int s_id;
+		      nd = nodes + i;
+		      delta_id += *(packed_ids.values + base + i);
+		      delta_lat += *(packed_lats.values + base + i);
+		      delta_lon += *(packed_lons.values + base + i);
+		      nd->id = delta_id;
+		      /* latitudes and longitudes require to be rescaled as DOUBLEs */
+		      nd->latitude = delta_lat / 10000000.0;
+		      nd->longitude = delta_lon / 10000000.0;
+		      nd->version = *(packed_infos.versions + base + i);
+		      xtime = *(packed_infos.timestamps + base + i);
+		      times = gmtime (&xtime);
+		      if (times)
 			{
-			    nd->user = malloc (len + 1);
-			    strcpy (nd->user, s_ptr->string);
+			    /* formatting Timestamps */
+			    char buf[64];
+			    int len;
+			    sprintf (buf, "%04d-%02d-%02dT%02d:%02d:%02dZ",
+				     times->tm_year + 1900, times->tm_mon + 1,
+				     times->tm_mday, times->tm_hour,
+				     times->tm_min, times->tm_sec);
+			    if (nd->timestamp)
+				free (nd->timestamp);
+			    len = strlen (buf);
+			    nd->timestamp = malloc (len + 1);
+			    strcpy (nd->timestamp, buf);
+			}
+		      nd->changeset = *(packed_infos.changesets + base + i);
+		      if (*(packed_infos.uids + base + i) >= 0)
+			  nd->uid = *(packed_infos.uids + base + i);
+		      s_id = *(packed_infos.users + base + i);
+		      if (s_id > 0)
+			{
+			    /* retrieving user-names as strings (by index) */
+			    readosm_string *s_ptr = *(strings->strings + s_id);
+			    int len = strlen (s_ptr->string);
+			    if (nd->user != NULL)
+				free (nd->user);
+			    if (len > 0)
+			      {
+				  nd->user = malloc (len + 1);
+				  strcpy (nd->user, s_ptr->string);
+			      }
+			}
+		      for (; i_keys < packed_keys.count; i_keys++)
+			{
+			    /* decoding packed-keys */
+			    int is = *(packed_keys.values + i_keys);
+			    if (is == 0)
+			      {
+				  /* next Node */
+				  i_keys++;
+				  break;
+			      }
+			    if (key == NULL)
+			      {
+				  readosm_string *s_ptr =
+				      *(strings->strings + is);
+				  key = s_ptr->string;
+			      }
+			    else
+			      {
+				  readosm_string *s_ptr =
+				      *(strings->strings + is);
+				  value = s_ptr->string;
+				  append_tag_to_node (nd, key, value);
+				  key = NULL;
+				  value = NULL;
+			      }
 			}
 		  }
-		for (; i_keys < packed_keys.count; i_keys++)
+		base += max_nodes;
+
+		/* processing each Node in the block */
+		if (params->node_callback != NULL && params->stop == 0)
 		  {
-		      /* decoding packed-keys */
-		      int is = *(packed_keys.values + i_keys);
-		      if (is == 0)
+		      int ret;
+		      readosm_internal_node *nd;
+		      int i;
+		      for (i = 0; i < max_nodes; i++)
 			{
-			    /* next Node */
-			    i_keys++;
-			    break;
+			    nd = nodes + i;
+			    ret =
+				call_node_callback (params->node_callback,
+						    params->user_data, nd);
+			    if (ret != READOSM_OK)
+			      {
+				  params->stop = 1;
+				  break;
+			      }
 			}
-		      if (key == NULL)
+		  }
+
+		/* memory cleanup: destroying Nodes */
+		if (nodes != NULL)
+		  {
+		      readosm_internal_node *nd;
+		      int i;
+		      for (i = 0; i < max_nodes; i++)
 			{
-			    readosm_string *s_ptr = *(strings->strings + is);
-			    key = s_ptr->string;
+			    nd = nodes + i;
+			    destroy_internal_node (nd);
 			}
-		      else
-			{
-			    readosm_string *s_ptr = *(strings->strings + is);
-			    value = s_ptr->string;
-			    append_tag_to_node (nd, key, value);
-			    key = NULL;
-			    value = NULL;
-			}
+		      free (nodes);
 		  }
 	    }
       }
@@ -1557,39 +1608,6 @@ parse_pbf_nodes (readosm_string_table * strings,
     finalize_int64_packed (&packed_lons);
     finalize_packed_infos (&packed_infos);
     finalize_variant (&variant);
-
-/* processing each Node in the block */
-    if (params->node_callback != NULL && params->stop == 0)
-      {
-	  int ret;
-	  readosm_internal_node *nd;
-	  int i;
-	  for (i = 0; i < nd_count; i++)
-	    {
-		nd = nodes + i;
-		ret =
-		    call_node_callback (params->node_callback,
-					params->user_data, nd);
-		if (ret != READOSM_OK)
-		  {
-		      params->stop = 1;
-		      break;
-		  }
-	    }
-      }
-
-/* memory cleanup: destroying Nodes */
-    if (nodes != NULL)
-      {
-	  readosm_internal_node *nd;
-	  int i;
-	  for (i = 0; i < nd_count; i++)
-	    {
-		nd = nodes + i;
-		destroy_internal_node (nd);
-	    }
-	  free (nodes);
-      }
     return 1;
 
   error:
@@ -1703,8 +1721,6 @@ parse_pbf_way_info (readosm_internal_way * way, readosm_string_table * strings,
     return 0;
 }
 
-		/* user-name: index to StringTable entry */
-
 static int
 parse_pbf_way (readosm_string_table * strings,
 	       unsigned char *start, unsigned char *stop,
@@ -1809,9 +1825,7 @@ parse_pbf_way (readosm_string_table * strings,
 		int i_val = *(packed_values.values + i);
 		readosm_string *s_key = *(strings->strings + i_key);
 		readosm_string *s_value = *(strings->strings + i_val);
-		append_tag_to_way (way, s_key
-				   /* user-name: index to StringTable entry */
-				   ->string, s_value->string);
+		append_tag_to_way (way, s_key->string, s_value->string);
 	    }
       }
     else
