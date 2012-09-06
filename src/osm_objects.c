@@ -471,19 +471,7 @@ append_member_to_relation (readosm_internal_relation * relation, int type,
 	  relation->last_member = mbr_blk;
       }
 
-/* initializing the Tag */
-    switch (type)
-      {
-      case 0:
-	  member->member_type = READOSM_MEMBER_NODE;
-	  break;
-      case 1:
-	  member->member_type = READOSM_MEMBER_WAY;
-	  break;
-      case 2:
-	  member->member_type = READOSM_MEMBER_RELATION;
-	  break;
-      };
+    member->member_type = type;
     member->id = id;
     len = strlen (role);
     member->role = malloc (len + 1);
