@@ -1,6 +1,6 @@
 
-INCLUDES = -I$(top_srcdir)/headers
-INCLUDES += -I$(top_srcdir)
+AM_CPPFLAGS = -I$(top_srcdir)/headers
+AM_CPPFLAGS += -I$(top_srcdir)
 
 lib_LTLIBRARIES = libreadosm.la 
 
