@@ -10,10 +10,10 @@ pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = readosm.pc
 
 coverage-init:
-	lcov --directory . --capture --initial --output-file readosm_cov.info
+	lcov --directory src --capture --initial --output-file readosm_cov.info
 
 coverage::
-	lcov --directory . --output-file readosm_cov.info --capture
+	lcov --directory src --output-file readosm_cov.info --capture
 	genhtml -o covresults readosm_cov.info
 
 MOSTLYCLEANFILES = readosm_cov.info 
