@@ -1102,7 +1102,7 @@ parse_pbf_node_infos (readosm_packed_infos * packed_infos,
  /
  / each "string" in turn contains an array of INT values;
  / and individual values are usually encoded as DELTAs,
- / i.e. differences respect the immedialy preceding value.
+ / i.e. differences respect the immediately preceding value.
 */
     readosm_variant variant;
     unsigned char *base = start;
@@ -1373,6 +1373,8 @@ parse_pbf_nodes (readosm_string_table * strings,
     readosm_packed_infos packed_infos;
     readosm_internal_node *nodes = NULL;
     int nd_count = 0;
+    int valid = 0;
+    int fromPackedInfos = 0;
 
 /* initializing empty packed objects */
     init_uint32_packed (&packed_keys);
@@ -1452,6 +1454,12 @@ parse_pbf_nodes (readosm_string_table * strings,
 	      break;
       }
     if (packed_ids.count == packed_lats.count
+	&& packed_ids.count == packed_lons.count)
+      {
+	  /* not using PackedInfos */
+	  valid = 1;
+      }
+    if (packed_ids.count == packed_lats.count
 	&& packed_ids.count == packed_lons.count
 	&& packed_ids.count == packed_infos.ver_count
 	&& packed_ids.count == packed_infos.tim_count
@@ -1459,7 +1467,15 @@ parse_pbf_nodes (readosm_string_table * strings,
 	&& packed_ids.count == packed_infos.uid_count
 	&& packed_ids.count == packed_infos.usr_count)
       {
-	  /* 
+	  /* from PackedInfos */
+	  valid = 1;
+	  fromPackedInfos = 1;
+      }
+    if (!valid)
+	goto error;
+    else
+      {
+	  /*
 	     / all right, we now have the same item count anywhere
 	     / we can now go further away attempting to reassemble
 	     / individual Nodes 
@@ -1502,39 +1518,46 @@ parse_pbf_nodes (readosm_string_table * strings,
 		      /* latitudes and longitudes require to be rescaled as DOUBLEs */
 		      nd->latitude = delta_lat / 10000000.0;
 		      nd->longitude = delta_lon / 10000000.0;
-		      nd->version = *(packed_infos.versions + base + i);
-		      xtime = *(packed_infos.timestamps + base + i);
-		      times = gmtime (&xtime);
-		      if (times)
+		      if (fromPackedInfos)
 			{
-			    /* formatting Timestamps */
-			    char buf[64];
-			    int len;
-			    sprintf (buf, "%04d-%02d-%02dT%02d:%02d:%02dZ",
-				     times->tm_year + 1900, times->tm_mon + 1,
-				     times->tm_mday, times->tm_hour,
-				     times->tm_min, times->tm_sec);
-			    if (nd->timestamp)
-				free (nd->timestamp);
-			    len = strlen (buf);
-			    nd->timestamp = malloc (len + 1);
-			    strcpy (nd->timestamp, buf);
-			}
-		      nd->changeset = *(packed_infos.changesets + base + i);
-		      if (*(packed_infos.uids + base + i) >= 0)
-			  nd->uid = *(packed_infos.uids + base + i);
-		      s_id = *(packed_infos.users + base + i);
-		      if (s_id > 0)
-			{
-			    /* retrieving user-names as strings (by index) */
-			    readosm_string *s_ptr = *(strings->strings + s_id);
-			    int len = strlen (s_ptr->string);
-			    if (nd->user != NULL)
-				free (nd->user);
-			    if (len > 0)
+			    nd->version = *(packed_infos.versions + base + i);
+			    xtime = *(packed_infos.timestamps + base + i);
+			    times = gmtime (&xtime);
+			    if (times)
 			      {
-				  nd->user = malloc (len + 1);
-				  strcpy (nd->user, s_ptr->string);
+				  /* formatting Timestamps */
+				  char buf[64];
+				  int len;
+				  sprintf (buf,
+					   "%04d-%02d-%02dT%02d:%02d:%02dZ",
+					   times->tm_year + 1900,
+					   times->tm_mon + 1, times->tm_mday,
+					   times->tm_hour, times->tm_min,
+					   times->tm_sec);
+				  if (nd->timestamp)
+				      free (nd->timestamp);
+				  len = strlen (buf);
+				  nd->timestamp = malloc (len + 1);
+				  strcpy (nd->timestamp, buf);
+			      }
+			    nd->changeset =
+				*(packed_infos.changesets + base + i);
+			    if (*(packed_infos.uids + base + i) >= 0)
+				nd->uid = *(packed_infos.uids + base + i);
+			    s_id = *(packed_infos.users + base + i);
+			    if (s_id > 0)
+			      {
+				  /* retrieving user-names as strings (by index) */
+				  readosm_string *s_ptr =
+				      *(strings->strings + s_id);
+				  int len = strlen (s_ptr->string);
+				  if (nd->user != NULL)
+				      free (nd->user);
+				  if (len > 0)
+				    {
+					nd->user = malloc (len + 1);
+					strcpy (nd->user, s_ptr->string);
+				    }
 			      }
 			}
 		      for (; i_keys < packed_keys.count; i_keys++)

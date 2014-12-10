@@ -76,7 +76,7 @@ main (int argc, char *argv[])
     ret = readosm_open ("testdata/test.osm.pbf", &handle);
     if (ret != READOSM_OK)
       {
-	  fprintf (stderr, "OPEN ERROR: %d\n", ret);
+	  fprintf (stderr, "OPEN ERROR #1: %d\n", ret);
 	  return -1;
       }
 
@@ -85,15 +85,38 @@ main (int argc, char *argv[])
 		       check_relation);
     if (ret != READOSM_OK)
       {
-	  fprintf (stderr, ".pbf PARSE error: %d\n", ret);
+	  fprintf (stderr, ".pbf PARSE error #1: %d\n", ret);
 	  return -2;
       }
 
     ret = readosm_close (handle);
     if (ret != READOSM_OK)
       {
-	  fprintf (stderr, "CLOSE ERROR: %d\n", ret);
+	  fprintf (stderr, "CLOSE ERROR #1: %d\n", ret);
 	  return -3;
+      }
+
+    ret = readosm_open ("testdata/noNodesPackedInfos.osm.pbf", &handle);
+    if (ret != READOSM_OK)
+      {
+	  fprintf (stderr, "OPEN ERROR #2: %d\n", ret);
+	  return -4;
+      }
+
+    ret =
+	readosm_parse (handle, (const void *) 0, check_node, check_way,
+		       check_relation);
+    if (ret != READOSM_OK)
+      {
+	  fprintf (stderr, ".pbf PARSE error #2: %d\n", ret);
+	  return -5;
+      }
+
+    ret = readosm_close (handle);
+    if (ret != READOSM_OK)
+      {
+	  fprintf (stderr, "CLOSE ERROR #2: %d\n", ret);
+	  return -6;
       }
 
     return 0;

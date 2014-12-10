@@ -7,4 +7,5 @@ TESTS = $(check_PROGRAMS)
 
 MOSTLYCLEANFILES = *.gcna *.gcno *.gcda
 
-EXTRA_DIST = testdata/test.osm testdata/test.osm.pbf
+EXTRA_DIST = testdata/test.osm testdata/test.osm.pbf \
+	testdata/noNodesPackedInfos.osm.pbf
