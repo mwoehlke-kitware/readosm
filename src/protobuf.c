@@ -2102,11 +2102,18 @@ parse_pbf_relation (readosm_string_table * strings,
 	  long long delta = 0;
 	  for (i = 0; i < packed_roles.count; i++)
 	    {
+		int xtype = READOSM_UNDEFINED;
 		int i_role = *(packed_roles.values + i);
 		readosm_string *s_role = *(strings->strings + i_role);
 		int type = *(packed_types.values + i);
 		delta += *(packed_refs.values + i);
-		append_member_to_relation (relation, type, delta,
+		if (type == 0)
+		    xtype = READOSM_MEMBER_NODE;
+		else if (type == 1)
+		    xtype = READOSM_MEMBER_WAY;
+		else if (type == 2)
+		    xtype = READOSM_MEMBER_RELATION;
+		append_member_to_relation (relation, xtype, delta,
 					   s_role->string);
 	    }
       }
