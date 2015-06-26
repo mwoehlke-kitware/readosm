@@ -4,7 +4,7 @@ SUBDIRS = headers src tests examples
 
 EXTRA_DIST = makefile.vc nmake.opt mainpage.doxy
 
-AUTOMAKE_OPTIONS = dist-zip dist-zip
+AUTOMAKE_OPTIONS = dist-zip foreign
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = readosm.pc
