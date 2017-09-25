@@ -24,8 +24,8 @@ readosm_i.lib:	$(LIBOBJ)
 	link /debug /dll /out:$(READOSM_DLL) \
 		/implib:readosm_i.lib $(LIBOBJ) \
 		C:\OSGeo4w\lib\libexpat.lib C:\OSGeo4w\lib\zlib.lib
-	if exist $(FREEXL_DLL).manifest mt -manifest \
-		$(FREEXL_DLL).manifest -outputresource:$(FREEXL_DLL);2 
+	if exist $(READOSM_DLL).manifest mt -manifest \
+		$(READOSM_DLL).manifest -outputresource:$(READOSM_DLL);2 
 		
 .c.obj:
 	$(CC) $(CFLAGS) /c $*.c /Fo$@

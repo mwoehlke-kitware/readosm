@@ -50,6 +50,8 @@ static int
 check_node (const void *user_data, const readosm_node * node)
 {
 /* Node callback function: does absolutely nothing */
+    if (user_data != NULL || node == NULL)
+	user_data = NULL;	/* silencing stupid compiler warnings */
     return READOSM_OK;
 }
 
@@ -57,6 +59,8 @@ static int
 check_way (const void *user_data, const readosm_way * way)
 {
 /* Way callback function: does absolutely nothing */
+    if (user_data != NULL || way == NULL)
+	user_data = NULL;	/* silencing stupid compiler warnings */
     return READOSM_OK;
 }
 
@@ -64,6 +68,8 @@ static int
 check_relation (const void *user_data, const readosm_relation * relation)
 {
 /* Relation callback function: does absolutely nothing */
+    if (user_data != NULL || relation == NULL)
+	user_data = NULL;	/* silencing stupid compiler warnings */
     return READOSM_OK;
 }
 
@@ -72,6 +78,9 @@ main (int argc, char *argv[])
 {
     const void *handle;
     int ret;
+
+    if (argc < 0 || argv == NULL)
+	argc = 0;		/* silencing stupid compiler warnings */
 
     ret = readosm_open ("testdata/test.osm.pbf", &handle);
     if (ret != READOSM_OK)

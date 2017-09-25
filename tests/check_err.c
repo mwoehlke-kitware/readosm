@@ -59,7 +59,7 @@ struct osm_count
     int rel_tags;
 };
 
-static int
+static void
 zero_count (struct osm_count *cnt)
 {
 /* resetting the osm_count struct */
@@ -113,6 +113,9 @@ main (int argc, char *argv[])
     struct osm_count count;
     char buffer[128];
     memset (buffer, '\0', 128);
+
+    if (argc < 0 || argv == NULL)
+	argc = 0;		/* silencing stupid compiler warnings */
 
     ret = readosm_open ("testdata/not-exists.osm", &handle);
     readosm_close (handle);

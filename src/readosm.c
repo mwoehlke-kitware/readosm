@@ -50,6 +50,7 @@
 
 #if defined(_WIN32) && !defined(__MINGW32__)
 /* MSVC: avoiding to include at all config.h */
+#define VERSION	1.1.0
 #else
 #include "config.h"
 #endif
