@@ -3,7 +3,7 @@
 /
 / Protocol Buffer (.pbf) implementation
 /
-/ version  1.0, 2012 April 21
+/ version  1.1.0, 2017 September 25
 /
 / Author: Sandro Furieri a.furieri@lqt.it
 /
@@ -25,7 +25,7 @@
 /
 / The Initial Developer of the Original Code is Alessandro Furieri
 / 
-/ Portions created by the Initial Developer are Copyright (C) 2012
+/ Portions created by the Initial Developer are Copyright (C) 2012-2017
 / the Initial Developer. All Rights Reserved.
 / 
 / Contributor(s):
@@ -2458,4 +2458,11 @@ parse_osm_pbf (readosm_file * input, const void *user_data,
 	      return READOSM_INVALID_PBF_HEADER;
       }
     return READOSM_OK;
+}
+
+READOSM_DECLARE const char *
+readosm_zlib_version (void)
+{
+/* returning the current zlib version string */
+    return zlibVersion ();
 }

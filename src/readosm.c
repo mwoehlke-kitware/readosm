@@ -3,7 +3,7 @@
 /
 / ReadOSM main implementation (externally visible API)
 /
-/ version  1.0, 2012 April 10
+/ version  1.1.0, 2017 September 25
 /
 / Author: Sandro Furieri a.furieri@lqt.it
 /
@@ -25,7 +25,7 @@
 /
 / The Initial Developer of the Original Code is Alessandro Furieri
 / 
-/ Portions created by the Initial Developer are Copyright (C) 2012
+/ Portions created by the Initial Developer are Copyright (C) 2012-2017
 / the Initial Developer. All Rights Reserved.
 / 
 / Contributor(s):
@@ -183,4 +183,11 @@ readosm_parse (const void *osm_handle, const void *user_data,
 	return READOSM_INVALID_HANDLE;
 
     return ret;
+}
+
+READOSM_DECLARE const char *
+readosm_version (void)
+{
+/* returning the current ReadOSM version string */
+    return VERSION;
 }

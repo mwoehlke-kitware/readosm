@@ -3,7 +3,7 @@
 /
 / OSM-XML (.osm) implementation
 /
-/ version  1.0, 2012 April 21
+/ version  1.1.0, 2017 September 25
 /
 / Author: Sandro Furieri a.furieri@lqt.it
 /
@@ -25,7 +25,7 @@
 /
 / The Initial Developer of the Original Code is Alessandro Furieri
 / 
-/ Portions created by the Initial Developer are Copyright (C) 2012
+/ Portions created by the Initial Developer are Copyright (C) 2012-2017
 / the Initial Developer. All Rights Reserved.
 / 
 / Contributor(s):
@@ -522,4 +522,15 @@ parse_osm_xml (readosm_file * input, const void *user_data,
     XML_ParserFree (parser);
 
     return READOSM_OK;
+}
+
+READOSM_DECLARE const char *
+readosm_expat_version (void)
+{
+/* returning the current Expat version string */
+    XML_Expat_Version expat;
+    static char version[64];
+    expat = XML_ExpatVersionInfo ();
+    sprintf (version, "%d.%d.%d", expat.major, expat.minor, expat.micro);
+    return version;
 }

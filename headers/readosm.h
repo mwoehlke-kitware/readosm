@@ -3,7 +3,7 @@
 /
 / public declarations
 /
-/ version  1.0, 2012 April 10
+/ version  1.1.0, 2017 September 25
 /
 / Author: Sandro Furieri a.furieri@lqt.it
 /
@@ -25,7 +25,7 @@
 /
 / The Initial Developer of the Original Code is Alessandro Furieri
 / 
-/ Portions created by the Initial Developer are Copyright (C) 2012
+/ Portions created by the Initial Developer are Copyright (C) 2012-2017
 / the Initial Developer. All Rights Reserved.
 / 
 / Contributor(s):
@@ -283,7 +283,7 @@ extern "C"
      Close the .osm or .pbf file and release any allocated resource
 
     \param osm_handle the handle previously returned by readosm_open()
-\param user_data pointer to some user-supplied data struct
+	\param user_data pointer to some user-supplied data struct
 	\param node_fnct pointer to callback function intended to consume NODE objects 
 	(may be NULL if processing NODEs is not an interesting option)
 	\param way_fnct pointer to callback function intended to consume WAY objects 
@@ -302,6 +302,27 @@ extern "C"
 				       readosm_node_callback node_fnct,
 				       readosm_way_callback way_fnct,
 				       readosm_relation_callback relation_fnct);
+
+    /**
+     Return the current ReadOSM version
+     
+     \return a text string corresponding the current ReadOSM version
+	*/
+    READOSM_DECLARE const char * readosm_version (void);
+
+    /**
+     Return the current libexpat version used by ReadOSM
+     
+     \return a text string corresponding the current Expat version
+	*/
+    READOSM_DECLARE const char * readosm_expat_version (void);
+
+    /**
+     Return the current zlib version used by ReadOSM
+     
+     \return a text string corresponding the current zlib version
+	*/
+    READOSM_DECLARE const char * readosm_zlib_version (void);
 
 #ifdef __cplusplus
 }

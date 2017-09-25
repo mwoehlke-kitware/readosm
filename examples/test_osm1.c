@@ -23,7 +23,7 @@
 /
 / The Initial Developer of the Original Code is Alessandro Furieri
 / 
-/ Portions created by the Initial Developer are Copyright (C) 2012
+/ Portions created by the Initial Developer are Copyright (C) 2012-2017
 / the Initial Developer. All Rights Reserved.
 / 
 / Contributor(s):
@@ -68,6 +68,9 @@ print_node (const void *user_data, const readosm_node * node)
     char buf[128];
     int i;
     const readosm_tag *tag;
+
+    if (user_data != NULL)
+	user_data = NULL;	/* silencing stupid compiler warnings */
 
 #if defined(_WIN32) || defined(__MINGW32__)
     /* CAVEAT - M$ runtime doesn't supports %lld for 64 bits */
@@ -155,6 +158,9 @@ print_way (const void *user_data, const readosm_way * way)
     char buf[128];
     int i;
     const readosm_tag *tag;
+
+    if (user_data != NULL)
+	user_data = NULL;	/* silencing stupid compiler warnings */
 
 #if defined(_WIN32) || defined(__MINGW32__)
     /* CAVEAT - M$ runtime doesn't supports %lld for 64 bits */
@@ -250,6 +256,9 @@ print_relation (const void *user_data, const readosm_relation * relation)
     int i;
     const readosm_member *member;
     const readosm_tag *tag;
+
+    if (user_data != NULL)
+	user_data = NULL;	/* silencing stupid compiler warnings */
 
 #if defined(_WIN32) || defined(__MINGW32__)
     /* CAVEAT - M$ runtime doesn't supports %lld for 64 bits */

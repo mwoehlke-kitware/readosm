@@ -23,7 +23,7 @@
 /
 / The Initial Developer of the Original Code is Alessandro Furieri
 / 
-/ Portions created by the Initial Developer are Copyright (C) 2012
+/ Portions created by the Initial Developer are Copyright (C) 2012-2017
 / the Initial Developer. All Rights Reserved.
 / 
 / Contributor(s):
@@ -71,6 +71,9 @@ parse_node (const void *user_data, const readosm_node * node)
     /* casting the USER_DATA pointer to osm_helper */
     struct osm_helper *helper = (struct osm_helper *) user_data;
 
+    if (node != NULL)
+	node = NULL;		/* silencing stupid compiler warnings */
+
     helper->read_count++;
     if (eval_abort (helper))
 	return READOSM_ABORT;
@@ -86,6 +89,9 @@ parse_way (const void *user_data, const readosm_way * way)
     /* casting the USER_DATA pointer to osm_helper */
     struct osm_helper *helper = (struct osm_helper *) user_data;
 
+    if (way != NULL)
+	way = NULL;		/* silencing stupid compiler warnings */
+
     helper->read_count++;
     if (eval_abort (helper))
 	return READOSM_ABORT;
@@ -100,6 +106,9 @@ parse_relation (const void *user_data, const readosm_relation * relation)
 
     /* casting the USER_DATA pointer to osm_helper */
     struct osm_helper *helper = (struct osm_helper *) user_data;
+
+    if (relation != NULL)
+	relation = NULL;	/* silencing stupid compiler warnings */
 
     helper->read_count++;
     if (eval_abort (helper))
