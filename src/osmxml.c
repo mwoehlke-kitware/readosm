@@ -51,7 +51,7 @@
 #include <expat.h>
 
 #if defined(_WIN32) && !defined(__MINGW32__)
-/* MSVC: avoiding to include at all config.h */
+#include "config-msvc.h"
 #else
 #include "config.h"
 #endif

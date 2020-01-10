@@ -2,7 +2,7 @@
 #
 # NMAKE Makefile to build libreadosm on Windows
 #
-!INCLUDE nmake.opt
+!INCLUDE nmake64.opt
 
 LIBOBJ	               =	src\readosm.obj src\osmxml.obj \
 							src\protobuf.obj src\osm_objects.obj
@@ -23,7 +23,7 @@ $(READOSM_DLL):	readosm_i.lib
 readosm_i.lib:	$(LIBOBJ)
 	link /debug /dll /out:$(READOSM_DLL) \
 		/implib:readosm_i.lib $(LIBOBJ) \
-		C:\OSGeo4w\lib\libexpat.lib C:\OSGeo4w\lib\zlib.lib
+		C:\OSGeo4w64\lib\expat.lib C:\OSGeo4w64\lib\zlib.lib
 	if exist $(READOSM_DLL).manifest mt -manifest \
 		$(READOSM_DLL).manifest -outputresource:$(READOSM_DLL);2 
 		
