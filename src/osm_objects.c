@@ -48,12 +48,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#if defined(_WIN32) && !defined(__MINGW32__)
-#include "config-msvc.h"
-#else
-#include "config.h"
-#endif
-
 #include "readosm.h"
 #include "readosm_internals.h"
 
@@ -67,7 +61,7 @@ release_internal_tag (readosm_internal_tag * tag)
 	free (tag->value);
 }
 
-READOSM_PRIVATE void
+READOSM_NO_EXPORT void
 release_internal_tag_block (readosm_internal_tag_block * tag_blk, int destroy)
 {
 /* freeing an internal TAG block */
@@ -91,7 +85,7 @@ release_internal_member (readosm_internal_member * member)
 	free (member->role);
 }
 
-READOSM_PRIVATE void
+READOSM_NO_EXPORT void
 release_internal_member_block (readosm_internal_member_block * mbr_blk,
 			       int destroy)
 {
@@ -108,7 +102,7 @@ release_internal_member_block (readosm_internal_member_block * mbr_blk,
       }
 }
 
-READOSM_PRIVATE void
+READOSM_NO_EXPORT void
 init_export_tag (readosm_export_tag * tag)
 {
 /* initializing an empty export TAG object */
@@ -118,7 +112,7 @@ init_export_tag (readosm_export_tag * tag)
     tag->value = NULL;
 }
 
-READOSM_PRIVATE void
+READOSM_NO_EXPORT void
 reset_export_tag (readosm_export_tag * tag)
 {
 /* resetting an export TAG object to initial empty state */
@@ -131,7 +125,7 @@ reset_export_tag (readosm_export_tag * tag)
     init_export_tag (tag);
 }
 
-READOSM_PRIVATE void
+READOSM_NO_EXPORT void
 init_internal_node (readosm_internal_node * node)
 {
 /* allocating an empty internal NODE object */
@@ -149,7 +143,7 @@ init_internal_node (readosm_internal_node * node)
     node->last_tag = &(node->first_tag);
 }
 
-READOSM_PRIVATE void
+READOSM_NO_EXPORT void
 append_tag_to_node (readosm_internal_node * node, const char *key,
 		    const char *value)
 {
@@ -183,7 +177,7 @@ append_tag_to_node (readosm_internal_node * node, const char *key,
     strcpy (tag->value, value);
 }
 
-READOSM_PRIVATE void
+READOSM_NO_EXPORT void
 destroy_internal_node (readosm_internal_node * node)
 {
 /* destroying an internal NODE object */
@@ -247,7 +241,7 @@ reset_export_node (readosm_export_node * node)
     init_export_node (node);
 }
 
-READOSM_PRIVATE readosm_internal_way *
+READOSM_NO_EXPORT readosm_internal_way *
 alloc_internal_way (void)
 {
 /* allocating an empty internal WAY object */
@@ -269,7 +263,7 @@ alloc_internal_way (void)
     return way;
 }
 
-READOSM_PRIVATE void
+READOSM_NO_EXPORT void
 append_reference_to_way (readosm_internal_way * way, long long node_ref)
 {
 /* appending a NODE-REF to a WAY object */
@@ -292,7 +286,7 @@ append_reference_to_way (readosm_internal_way * way, long long node_ref)
       }
 }
 
-READOSM_PRIVATE void
+READOSM_NO_EXPORT void
 append_tag_to_way (readosm_internal_way * way, const char *key,
 		   const char *value)
 {
@@ -326,7 +320,7 @@ append_tag_to_way (readosm_internal_way * way, const char *key,
     strcpy (tag->value, value);
 }
 
-READOSM_PRIVATE void
+READOSM_NO_EXPORT void
 destroy_internal_way (readosm_internal_way * way)
 {
 /* destroying an internal WAY object */
@@ -423,7 +417,7 @@ reset_export_member (readosm_export_member * member)
     init_export_member (member);
 }
 
-READOSM_PRIVATE readosm_internal_relation *
+READOSM_NO_EXPORT readosm_internal_relation *
 alloc_internal_relation (void)
 {
 /* allocating an empty internal RELATION object */
@@ -446,7 +440,7 @@ alloc_internal_relation (void)
     return rel;
 }
 
-READOSM_PRIVATE void
+READOSM_NO_EXPORT void
 append_member_to_relation (readosm_internal_relation * relation, int type,
 			   long long id, const char *role)
 {
@@ -478,7 +472,7 @@ append_member_to_relation (readosm_internal_relation * relation, int type,
     strcpy (member->role, role);
 }
 
-READOSM_PRIVATE void
+READOSM_NO_EXPORT void
 append_tag_to_relation (readosm_internal_relation * relation, const char *key,
 			const char *value)
 {
@@ -512,7 +506,7 @@ append_tag_to_relation (readosm_internal_relation * relation, const char *key,
     strcpy (tag->value, value);
 }
 
-READOSM_PRIVATE void
+READOSM_NO_EXPORT void
 destroy_internal_relation (readosm_internal_relation * relation)
 {
 /* destroying an internal RELATION object */
@@ -596,7 +590,7 @@ reset_export_relation (readosm_export_relation * relation)
 }
 
 
-READOSM_PRIVATE int
+READOSM_NO_EXPORT int
 call_node_callback (readosm_node_callback node_callback,
 		    const void *user_data, readosm_internal_node * node)
 {
@@ -689,7 +683,7 @@ call_node_callback (readosm_node_callback node_callback,
     return ret;
 }
 
-READOSM_PRIVATE int
+READOSM_NO_EXPORT int
 call_way_callback (readosm_way_callback way_callback,
 		   const void *user_data, readosm_internal_way * way)
 {
@@ -806,7 +800,7 @@ call_way_callback (readosm_way_callback way_callback,
     return ret;
 }
 
-READOSM_PRIVATE int
+READOSM_NO_EXPORT int
 call_relation_callback (readosm_relation_callback relation_callback,
 			const void *user_data,
 			readosm_internal_relation * relation)

@@ -1,0 +1,7 @@
+set(ReadOSM_SHARED @BUILD_SHARED_LIBS@)
+
+if(NOT ReadOSM_SHARED)
+  # TODO export transitive dependencies
+endif()
+
+include("${CMAKE_CURRENT_LIST_DIR}/ReadOSMTargets.cmake")

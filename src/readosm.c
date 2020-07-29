@@ -48,12 +48,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#if defined(_WIN32) && !defined(__MINGW32__)
-#include "config-msvc.h"
-#else
-#include "config.h"
-#endif
-
 #include "readosm.h"
 #include "readosm_internals.h"
 
@@ -102,7 +96,7 @@ destroy_osm_file (readosm_file * input)
       }
 }
 
-READOSM_DECLARE int
+READOSM_EXPORT int
 readosm_open (const char *path, const void **osm_handle)
 {
 /* opening and initializing the OSM input file */
@@ -136,7 +130,7 @@ readosm_open (const char *path, const void **osm_handle)
     return READOSM_OK;
 }
 
-READOSM_DECLARE int
+READOSM_EXPORT int
 readosm_close (const void *osm_handle)
 {
 /* attempting to destroy the OSM input file */
@@ -155,7 +149,7 @@ readosm_close (const void *osm_handle)
     return READOSM_OK;
 }
 
-READOSM_DECLARE int
+READOSM_EXPORT int
 readosm_parse (const void *osm_handle, const void *user_data,
 	       readosm_node_callback node_fnct, readosm_way_callback way_fnct,
 	       readosm_relation_callback relation_fnct)
@@ -185,9 +179,9 @@ readosm_parse (const void *osm_handle, const void *user_data,
     return ret;
 }
 
-READOSM_DECLARE const char *
+READOSM_EXPORT const char *
 readosm_version (void)
 {
 /* returning the current ReadOSM version string */
-    return VERSION;
+    return READOSM_VERSION;
 }

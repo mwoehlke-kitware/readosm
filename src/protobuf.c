@@ -52,12 +52,6 @@
 
 #include <zlib.h>
 
-#if defined(_WIN32) && !defined(__MINGW32__)
-#include "config-msvc.h"
-#else
-#include "config.h"
-#endif
-
 #include "readosm.h"
 #include "readosm_internals.h"
 #include "readosm_protobuf.h"
@@ -2409,7 +2403,7 @@ parse_osm_data (readosm_file * input, unsigned int sz,
     return 0;
 }
 
-READOSM_PRIVATE int
+READOSM_NO_EXPORT int
 parse_osm_pbf (readosm_file * input, const void *user_data,
 	       readosm_node_callback node_fnct, readosm_way_callback way_fnct,
 	       readosm_relation_callback relation_fnct)
@@ -2460,7 +2454,7 @@ parse_osm_pbf (readosm_file * input, const void *user_data,
     return READOSM_OK;
 }
 
-READOSM_DECLARE const char *
+READOSM_EXPORT const char *
 readosm_zlib_version (void)
 {
 /* returning the current zlib version string */

@@ -1,4 +1,4 @@
-/* 
+/*
 / readosm.h
 /
 / public declarations
@@ -8,14 +8,14 @@
 / Author: Sandro Furieri a.furieri@lqt.it
 /
 / ------------------------------------------------------------------------------
-/ 
+/
 / Version: MPL 1.1/GPL 2.0/LGPL 2.1
-/ 
+/
 / The contents of this file are subject to the Mozilla Public License Version
 / 1.1 (the "License"); you may not use this file except in compliance with
 / the License. You may obtain a copy of the License at
 / http://www.mozilla.org/MPL/
-/ 
+/
 / Software distributed under the License is distributed on an "AS IS" basis,
 / WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
 / for the specific language governing rights and limitations under the
@@ -24,10 +24,10 @@
 / The Original Code is the ReadOSM library
 /
 / The Initial Developer of the Original Code is Alessandro Furieri
-/ 
+/
 / Portions created by the Initial Developer are Copyright (C) 2012-2017
 / the Initial Developer. All Rights Reserved.
-/ 
+/
 / Contributor(s):
 /
 / Alternatively, the contents of this file may be used under the terms of
@@ -41,33 +41,20 @@
 / and other provisions required by the GPL or the LGPL. If you do not delete
 / the provisions above, a recipient may use your version of this file under
 / the terms of any one of the MPL, the GPL or the LGPL.
-/ 
+/
 */
 
 /**
- \file readosm.h 
- 
+ \file readosm.h
+
  Function declarations and constants for ReadOSM library
  */
-#ifndef DOXYGEN_SHOULD_SKIP_THIS
-#ifdef _WIN32
-#ifdef DLL_EXPORT
-#define READOSM_DECLARE __declspec(dllexport)
-#define READOSM_PRIVATE
-#else
-#define READOSM_DECLARE extern
-#define READOSM_PRIVATE
-#endif
-#else
-#define READOSM_DECLARE __attribute__ ((visibility("default")))
-#define READOSM_PRIVATE __attribute__ ((visibility("hidden")))
-#endif
-#endif
-
 #ifndef _READOSM_H
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 #define _READOSM_H
 #endif
+
+#include "readosm_export.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -115,7 +102,7 @@ extern "C"
 
 	/**
      Typedef for TAG structure.
-     
+
      \sa readosm_tag_struct
      */
     typedef struct readosm_tag_struct readosm_tag;
@@ -145,7 +132,7 @@ extern "C"
 
 	/**
      Typedef for NODE structure.
-     
+
      \sa readosm_node_struct
      */
     typedef struct readosm_node_struct readosm_node;
@@ -178,7 +165,7 @@ extern "C"
 
 	/**
      Typedef for WAY structure.
-     
+
      \sa readosm_way_struct
      */
     typedef struct readosm_way_struct readosm_way;
@@ -199,7 +186,7 @@ extern "C"
 
 	/**
      Typedef for MEMBER structure.
-     
+
      \sa readosm_member_struct
      */
     typedef struct readosm_member_struct readosm_member;
@@ -232,7 +219,7 @@ extern "C"
 
 	/**
      Typedef for RELATION structure.
-     
+
      \sa readosm_relation_struct
      */
     typedef struct readosm_relation_struct readosm_relation;
@@ -252,7 +239,7 @@ extern "C"
 
     /**
      Open the .osm or .pbf file, preparing for future functions
-     
+
      \param path full or relative pathname of the input file.
      \param osm_handle an opaque reference (handle) to be used in each
      subsequent function (return value).
@@ -263,66 +250,66 @@ extern "C"
      \note You are expected to readosm_close() even on failure, so as to
      correctly release any dynamic memory allocation.
      */
-    READOSM_DECLARE int readosm_open (const char *path,
-				      const void **osm_handle);
+    READOSM_EXPORT int readosm_open (const char *path,
+				     const void **osm_handle);
 
-    /** 
+    /**
      Close the .osm or .pbf file and release any allocated resource
 
     \param osm_handle the handle previously returned by readosm_open()
 
     \return READOSM_OK will be returned on success, otherwise any appropriate
      error code on failure.
-    
+
     \note After calling readosm_close() any related resource will be released,
     and the handle will no longer be valid.
     */
-    READOSM_DECLARE int readosm_close (const void *osm_handle);
+    READOSM_EXPORT int readosm_close (const void *osm_handle);
 
-    /** 
+    /**
      Close the .osm or .pbf file and release any allocated resource
 
     \param osm_handle the handle previously returned by readosm_open()
 	\param user_data pointer to some user-supplied data struct
-	\param node_fnct pointer to callback function intended to consume NODE objects 
+	\param node_fnct pointer to callback function intended to consume NODE objects
 	(may be NULL if processing NODEs is not an interesting option)
-	\param way_fnct pointer to callback function intended to consume WAY objects 
+	\param way_fnct pointer to callback function intended to consume WAY objects
 	(may be NULL if processing WAYs is not an interesting option)
-	\param relation_fnct pointer to callback function intended to consume RELATION objects 
+	\param relation_fnct pointer to callback function intended to consume RELATION objects
 	(may be NULL if processing RELATIONs is not an interesting option)
 
     \return READOSM_OK will be returned on success, otherwise any appropriate
      error code on failure.
-    
+
     \note After calling readosm_close() any related resource will be released,
     and the handle will no longer be valid.
     */
-    READOSM_DECLARE int readosm_parse (const void *osm_handle,
-				       const void *user_data,
-				       readosm_node_callback node_fnct,
-				       readosm_way_callback way_fnct,
-				       readosm_relation_callback relation_fnct);
+    READOSM_EXPORT int readosm_parse (const void *osm_handle,
+				      const void *user_data,
+				      readosm_node_callback node_fnct,
+				      readosm_way_callback way_fnct,
+				      readosm_relation_callback relation_fnct);
 
     /**
      Return the current ReadOSM version
-     
+
      \return a text string corresponding the current ReadOSM version
 	*/
-    READOSM_DECLARE const char * readosm_version (void);
+    READOSM_EXPORT const char * readosm_version (void);
 
     /**
      Return the current libexpat version used by ReadOSM
-     
+
      \return a text string corresponding the current Expat version
 	*/
-    READOSM_DECLARE const char * readosm_expat_version (void);
+    READOSM_EXPORT const char * readosm_expat_version (void);
 
     /**
      Return the current zlib version used by ReadOSM
-     
+
      \return a text string corresponding the current zlib version
 	*/
-    READOSM_DECLARE const char * readosm_zlib_version (void);
+    READOSM_EXPORT const char * readosm_zlib_version (void);
 
 #ifdef __cplusplus
 }
